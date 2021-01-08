@@ -3,6 +3,7 @@ package com.huajun123;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Arrays;
 public class JunitTests {
     //测试循环队列
     @Test
@@ -93,5 +94,36 @@ public class JunitTests {
     public void testReversingLinkedList1(){
         SingleDirectionalLinkedList singleDirectionalLinkedList = this.pushLinkedListUsingTestData();
         singleDirectionalLinkedList.printNodesByReversedOrder();
+    }
+    @Test
+    public void testBidenAddingObjects(){
+        JoeBidenQueue joeBidenQueue = new JoeBidenQueue();
+        joeBidenQueue.addBidens(20);
+        joeBidenQueue.showAllBidensInOrder();
+    }
+    @Test
+    public void testJoeBidenChuquanActivity(){
+        JoeBidenQueue joeBidenQueue = new JoeBidenQueue();
+        joeBidenQueue.addBidens(5);
+        joeBidenQueue.chuquanhuodong(1,2);
+    }
+    @Test
+    public void putTests(){
+        CircleArrayQueue1 circleArrayQueue1 = new CircleArrayQueue1(6);
+        for(int i=1;i<=6;i++){
+            circleArrayQueue1.put(i);
+        }
+        for(int i=1;i<=2;i++){
+            System.out.println(circleArrayQueue1.get());
+        }
+        System.out.println("-------------");
+        circleArrayQueue1.put(60);
+        circleArrayQueue1.put(100);
+        circleArrayQueue1.brower();
+    }
+    @Test
+    public void testReversalComputer(){
+        ReversalPolandComputer reversalPolandComputer = new ReversalPolandComputer();
+        System.out.println(reversalPolandComputer.suffixCompute(Arrays.asList("30","4","+","5","*","6","-")));
     }
 }
