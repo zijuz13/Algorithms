@@ -1,0 +1,153 @@
+package com.huajun123;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Stack;
+
+public class ReversalPolandComputer {
+    private static final String ADD="+";
+    private static final String MINUS="-";
+    private static final String MULTIPLY="*";
+    private static final String DIVIDE="/";
+    //计算后缀表达式
+    public int suffixCompute(List<String> expressions){
+        //To store numbers
+        Stack<Integer> stack1=new Stack<>();
+     for(int i=0;i<expressions.size();i++){
+         String str=expressions.get(i);
+         if(!ifOperator(str)){
+            stack1.push(Integer.parseInt(str));
+         }else{
+             int num2=stack1.pop();
+             int num1=stack1.pop();
+             stack1.push(this.computeTemporaryResults(str,num1,num2));
+         }
+         }
+     return stack1.peek();
+    }
+    private boolean ifOperator(String character){
+        return Arrays.asList(ADD,MINUS,MULTIPLY,DIVIDE).contains(character);
+    }
+    private int computeTemporaryResults(String operator,int num1,int num2){
+        switch (operator){
+            case ADD:{
+                return num1+num2;
+            }
+            case MINUS:{
+                return num1-num2;
+            }
+            case MULTIPLY:{
+                return num1*num2;
+            }
+            case DIVIDE:{
+                return num1/num2;
+            }
+            default:{
+                throw new RuntimeException("Cannot discern what the operator is, please correctly specify it");
+            }
+        }
+    }
+    enum Operator{
+        ADD("+"),MINUS("-"),MULTIPLY("*"),DIVIDE("/");
+        private int operator;
+        private String operator1;
+      Operator(String operator){
+          switch(operator){
+              case "+":
+                  this.operator=1;
+                  this.operator1=operator;
+                  break;
+              case "-":
+                  this.operator=1;
+                  this.operator1=operator;
+                  break;
+              case "/":
+                  this.operator=2;
+                  this.operator1=operator;
+                  break;
+              case "*":
+                  this.operator=2;
+                  this.operator1=operator;
+                  break;
+              default:
+                  this.operator=0;
+                  this.operator1=operator;
+                  break;
+          }
+      }
+      public boolean comp(Operator operator){
+          if(this.operator>operator.operator){
+              return true;
+          }else{
+              return false;
+          }
+      }
+      public String getOperator(){
+          return operator1;
+      }
+    }
+    private Operator getOperator(String operator){
+        switch(operator){
+            case "+":
+                return Operator.ADD;
+            case "-":
+                return Operator.MINUS;
+            case "/":
+                return Operator.DIVIDE;
+            case "*":
+                return Operator.MULTIPLY;
+            default:
+                return null;
+        }
+    }
+    public List<String> infixExpressionToPostFix(String expression){
+        List<String> list=new ArrayList<>();
+        Stack<Operator> operatorStack=new Stack<>();
+        for(int i=0;i<=expression.length();){
+            char c=expression.charAt(i);
+            if(c<=47||c>=58){
+                Operator operator = this.getOperator("" + c);
+                if(operator.getOperator()=="("){
+                    operatorStack.push(operator);
+                    i++;
+                    continue;
+                }
+                if(operator.getOperator()==")"){
+                    while(operatorStack.peek().getOperator()!="("){
+                        list.add(operatorStack.pop().getOperator());
+                    }
+                    operatorStack.pop();
+                    i++;
+                    continue;
+                }
+                if(!operatorStack.empty()){
+                    if(operator.comp(operatorStack.peek())){
+                     operatorStack.push(operator);
+                     i++;
+                    }else{
+                        while(!(operator.comp(operatorStack.peek()))) {
+                            list.add(operatorStack.pop().getOperator());
+                        }
+                        operatorStack.push(operator);
+                        i++;
+                        continue;
+                    }
+                }else{
+                    operatorStack.push(operator);
+                }
+            }else{
+             String str="";
+             str+=c;
+             while(i<expression.length()&&expression.charAt(i)>47&&expression.charAt(i)<58){
+                 str+=expression.charAt(i);
+                 i++;
+             }
+             list.add(str);
+            }
+        }
+        while(!operatorStack.empty()){
+            list.add(operatorStack.pop().getOperator());
+        }
+        return list;
+    }
+}
