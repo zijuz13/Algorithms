@@ -126,4 +126,19 @@ public class JunitTests {
         ReversalPolandComputer reversalPolandComputer = new ReversalPolandComputer();
         System.out.println(reversalPolandComputer.suffixCompute(Arrays.asList("30","4","+","5","*","6","-")));
     }
+    @Test
+    public void testRecursivelyJoeBidenQueue(){
+        RecursiveJoeQueue recursiveJoeQueue = new RecursiveJoeQueue();
+        recursiveJoeQueue.addBidens(5);
+        recursiveJoeQueue.chuquanhuodong(1,2);
+    }
+    @Test
+    public void testEnumClassInPorlandExpression(){
+        System.out.println(ReversalPolandComputer.Operator.DIVIDE.comp(ReversalPolandComputer.Operator.MINUS));
+    }
+    @Test
+    public void testInfixToPostFix(){
+        ReversalPolandComputer reversalPolandComputer = new ReversalPolandComputer();
+        System.out.println(reversalPolandComputer.infixExpressionToPostFix("1+((2+3)*4)-5"));
+    }
 }
