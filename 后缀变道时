@@ -1,4 +1,4 @@
-package com.huajun123;
+package com.huajun123.algorithms;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -13,17 +13,21 @@ public class ReversalPolandComputer {
     public int suffixCompute(List<String> expressions){
         //To store numbers
         Stack<Integer> stack1=new Stack<>();
-     for(int i=0;i<expressions.size();i++){
-         String str=expressions.get(i);
-         if(!ifOperator(str)){
-            stack1.push(Integer.parseInt(str));
-         }else{
-             int num2=stack1.pop();
-             int num1=stack1.pop();
-             stack1.push(this.computeTemporaryResults(str,num1,num2));
-         }
-         }
-     return stack1.peek();
+        for(int i=0;i<expressions.size();i++){
+            String str=expressions.get(i);
+            if(!ifOperator(str)){
+                stack1.push(Integer.parseInt(str));
+            }else{
+                int num2=stack1.pop();
+                int num1=stack1.pop();
+                stack1.push(this.computeTemporaryResults(str,num1,num2));
+            }
+        }
+        return stack1.peek();
+    }
+    public int compute(String expression){
+        List<String> list = this.infixExpressionToPostFix(expression);
+        return this.suffixCompute(list);
     }
     private boolean ifOperator(String character){
         return Arrays.asList(ADD,MINUS,MULTIPLY,DIVIDE).contains(character);
@@ -48,43 +52,43 @@ public class ReversalPolandComputer {
         }
     }
     enum Operator{
-        ADD("+"),MINUS("-"),MULTIPLY("*"),DIVIDE("/");
+        ADD("+"),MINUS("-"),MULTIPLY("*"),DIVIDE("/"),LEFT("("),RIGHT(")");
         private int operator;
         private String operator1;
-      Operator(String operator){
-          switch(operator){
-              case "+":
-                  this.operator=1;
-                  this.operator1=operator;
-                  break;
-              case "-":
-                  this.operator=1;
-                  this.operator1=operator;
-                  break;
-              case "/":
-                  this.operator=2;
-                  this.operator1=operator;
-                  break;
-              case "*":
-                  this.operator=2;
-                  this.operator1=operator;
-                  break;
-              default:
-                  this.operator=0;
-                  this.operator1=operator;
-                  break;
-          }
-      }
-      public boolean comp(Operator operator){
-          if(this.operator>operator.operator){
-              return true;
-          }else{
-              return false;
-          }
-      }
-      public String getOperator(){
-          return operator1;
-      }
+        Operator(String operator){
+            switch(operator){
+                case "+":
+                    this.operator=1;
+                    this.operator1=operator;
+                    break;
+                case "-":
+                    this.operator=1;
+                    this.operator1=operator;
+                    break;
+                case "/":
+                    this.operator=2;
+                    this.operator1=operator;
+                    break;
+                case "*":
+                    this.operator=2;
+                    this.operator1=operator;
+                    break;
+                default:
+                    this.operator=0;
+                    this.operator1=operator;
+                    break;
+            }
+        }
+        public boolean comp(Operator operator){
+            if(this.operator>operator.operator){
+                return true;
+            }else{
+                return false;
+            }
+        }
+        public String getOperator(){
+            return operator1;
+        }
     }
     private Operator getOperator(String operator){
         switch(operator){
@@ -96,14 +100,16 @@ public class ReversalPolandComputer {
                 return Operator.DIVIDE;
             case "*":
                 return Operator.MULTIPLY;
+            case "(":
+                return Operator.LEFT;
             default:
-                return null;
+                return Operator.RIGHT;
         }
     }
     public List<String> infixExpressionToPostFix(String expression){
         List<String> list=new ArrayList<>();
         Stack<Operator> operatorStack=new Stack<>();
-        for(int i=0;i<=expression.length();){
+        for(int i=0;i<expression.length();){
             char c=expression.charAt(i);
             if(c<=47||c>=58){
                 Operator operator = this.getOperator("" + c);
@@ -122,10 +128,10 @@ public class ReversalPolandComputer {
                 }
                 if(!operatorStack.empty()){
                     if(operator.comp(operatorStack.peek())){
-                     operatorStack.push(operator);
-                     i++;
+                        operatorStack.push(operator);
+                        i++;
                     }else{
-                        while(!(operator.comp(operatorStack.peek()))) {
+                        while(!operatorStack.empty()&&!(operator.comp(operatorStack.peek()))) {
                             list.add(operatorStack.pop().getOperator());
                         }
                         operatorStack.push(operator);
@@ -134,15 +140,17 @@ public class ReversalPolandComputer {
                     }
                 }else{
                     operatorStack.push(operator);
+                    i++;
                 }
             }else{
-             String str="";
-             str+=c;
-             while(i<expression.length()&&expression.charAt(i)>47&&expression.charAt(i)<58){
-                 str+=expression.charAt(i);
-                 i++;
-             }
-             list.add(str);
+                String str="";
+                str+=c;
+                i++;
+                while(i<expression.length()&&expression.charAt(i)>47&&expression.charAt(i)<58){
+                    str+=expression.charAt(i);
+                    i++;
+                }
+                list.add(str);
             }
         }
         while(!operatorStack.empty()){
