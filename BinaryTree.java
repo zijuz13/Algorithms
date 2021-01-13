@@ -14,9 +14,44 @@ public class BinaryTree {
        node2.setLeft(node4);
        node2.setRight(node5);
     }
+    public void deleteById(Long id){
+        this.infix();
+        if(root.id==id){
+            root=null;
+            System.out.println("成功删除根节点");
+        }else {
+            int i = this.deleteById(root, id);
+            if (1 == i) {
+                System.out.println("成功删除数据");
+            } else {
+                System.out.println("the specified element did not exist!");
+            }
+        }
+    }
+    private int deleteById(Node node,Long id){
+        if(null==node){
+            throw new RuntimeException("根节点根本不能为null知道吗");
+        }
+        if(null!=node.left&&node.left.id==id){
+                node.left=null;
+                return 1;
+        }
+        if(null!=node.right&&node.right.id==id){
+                node.right=null;
+                return 1;
+        }
+        if(null!=node.left&&1==this.deleteById(node.left,id)){
+            return 1;
+        }
+        if(null!=node.right&&1==this.deleteById(node.right,id)){
+            return 1;
+        }
+        return -1;
+    }
     public Node infixSearch(Long id){
         return this.infixSearchById(this.root,id);
     }
+    //根据id来进行中序搜索
     private Node infixSearchById(Node node,Long id){
         if(null==node){
             throw new RuntimeException("不能进行中序查找，因为根节点为null");
