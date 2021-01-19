@@ -1,0 +1,26 @@
+docker run -d --hostname my-rabbit --memory=256m --restart unless-stopped --name some-rabbit -p 15672:15672 -p 5672:5672 92f562ed4c6b
+docker run -itd --name es -p 10038:9200 -p 10039:9300 -e "discovery.type=single-node" -e ES_JAVA_OPTS="-Xms64m -Xmx64m" -v /home/hujkc123/elasticsearch/data:/usr/share/elasticsearch/data --restart unless-stopped b74c54dcb4d7 //堆内存设置到64m这样占用内存会小很多
+docker run --name mysql -e MYSQL_ROOT_PASSWORD=huajun123 -d --restart unless-stopped -p 3306:3306 mysql:5.6.50
+docker run -itd -p 6379:6379 -v ~/docker/test/data:/data --name redis redis:3.2 redis-server --appendonly yes  --requirepass "huajun123"
+
+sudo mkdir -p /etc/docker
+sudo tee /etc/docker/daemon.json <<-'EOF'
+{
+ "registry-mirrors": ["https://3mm7u0e7.mirror.aliyuncs.com"]
+}
+EOF
+sudo systemctl daemon-reload
+sudo systemctl restart docker
+
+25.使用docker容器仓库存储镜像：
+registry1可以替换为你在阿里云仓库中声明的仓库名称
+
+登录阿里云Docker Registry
+sudo docker login --username=骏马无疆233 registry.cn-beijing.aliyuncs.com
+从仓库中拉取镜像：
+$ sudo docker pull registry.cn-beijing.aliyuncs.com/zijun/registry1:[镜像版本号]
+将镜像推送到Registry
+$ sudo docker login --username=骏马无疆233 registry.cn-beijing.aliyuncs.com
+$ sudo docker tag [ImageId] registry.cn-beijing.aliyuncs.com/zijun/registry1:[镜像版本号]
+$ sudo docker push registry.cn-beijing.aliyuncs.com/zijun/registry1:[镜像版本号]
+docker run -itd --name eureka -p 10086:10086
