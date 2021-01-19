@@ -141,4 +141,22 @@ public class JunitTests {
         ReversalPolandComputer reversalPolandComputer = new ReversalPolandComputer();
         System.out.println(reversalPolandComputer.infixExpressionToPostFix("1+((2+3)*4)-5"));
     }
+        @Test
+    public void testThreadedBinaryTree(){
+        ThreadedBinaryTree.Node node1=new ThreadedBinaryTree.Node(1L);
+        ThreadedBinaryTree.Node node2=new ThreadedBinaryTree.Node(3L);
+        ThreadedBinaryTree.Node node3=new ThreadedBinaryTree.Node(6L);
+        ThreadedBinaryTree.Node node4=new ThreadedBinaryTree.Node(8L);
+        ThreadedBinaryTree.Node node5=new ThreadedBinaryTree.Node(10L);
+        ThreadedBinaryTree.Node node6=new ThreadedBinaryTree.Node(14L);
+        node1.setLeft(node2);
+        node1.setRight(node3);
+        node2.setLeft(node4);
+        node2.setRight(node5);
+        node3.setLeft(node6);
+        ThreadedBinaryTree threadedBinaryTree = new ThreadedBinaryTree(node1);
+        threadedBinaryTree.threadNodes();
+        System.out.println(node5.getLeft());
+        System.out.println(node5.getRight());
+    }
 }
