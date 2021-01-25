@@ -159,4 +159,18 @@ public class JunitTests {
         System.out.println(node5.getLeft());
         System.out.println(node5.getRight());
     }
+        @Test
+    public void testHeapSort(){
+        new HeapSort(new int[]{32,43,1,66,95,68,74,102,0,23,-1}).sort();
+    }
+    @Test
+    public void testHuff1(){
+//        List<HuffmanTree.Node> nodes = new HuffmanTree().formNodesFromString("i like like like java do you like a java");
+//        Collections.sort(nodes);
+//        System.out.println(nodes);
+    }
+    @Test
+    public void testHuff2(){
+        new HuffmanTree().analyzeCodeFromString("i like like like java do you like a java");
+    }
 }
