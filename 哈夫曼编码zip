@@ -1,0 +1,10 @@
+Compress Files using HuffmanTree Algorithm
+一:压缩字符串
+1.将哈夫曼树转换为字节流，然后遍历字节流，并使用hashmap统计每个字节的frequency
+2.根据hashmap创建哈夫曼树的节点，并构建哈夫曼树，根据哈夫曼树的算法，出现频率越高的字符它的字符串长度将会越短
+3.递归获得哈夫曼树的编码
+4.将要压缩的字符串的字节码转成相应的哈夫曼树编码并且拼接，然后将拼接后的stringbuilder转为byte数组
+二:解压字符串
+1.对压缩后的byte数组进行遍历，并且转为stringbuilder,并且将hashmap哈夫曼树编码的key和value翻转，方便根据string获得byte
+2.使用substring一个一个相应的byte数组
+3.使用new String(bytes,"UTF-8");就可以获得原来的字符串
