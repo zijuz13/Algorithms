@@ -1,1 +1,169 @@
 docker pull registry.cn-beijing.aliyuncs.com/zijun/registry1:edit
+package com.huajun123;
+
+public class BinarySearchTree {
+    private int[] arr;
+    private Node root;
+    public BinarySearchTree(int[] arr){
+        this.arr=arr;
+        this.setNodeRoot();
+    }
+    private void setNodeRoot(){
+        for (int i=0;i<arr.length;i++) {
+            if(0==i){
+                root=new Node(arr[i]);
+                continue;
+            }
+            root.addNode(new Node(arr[i]));
+        }
+    }
+    public void infixOrder(){
+        this.infixOrder(root);
+    }
+    //递归进行中序遍历
+    private void infixOrder(Node node){
+        if(null==node){
+            throw new RuntimeException("Root Node cannot be set null value!");
+        }
+        if(null!=node.left){
+            this.infixOrder(node.left);
+        }
+        System.out.println(node);
+        if(null!=node.right){
+            this.infixOrder(node.right);
+        }
+    }
+    public Node searchNode(int value){
+        return this.searchNode(root,value);
+    }
+    //递归搜索节点
+    private Node searchNode(Node node,int val){
+        if(null!=node) {
+            if (node.value == val) {
+                return node;
+            } else if (node.value > val) {
+                return this.searchNode(node.left,val);
+            } else {
+               return this.searchNode(node.right,val);
+            }
+        }else{
+            return null;
+        }
+    }
+    //递归搜索指定节点的父节点
+    public Node searchParent(int value){
+        return this.searchParent(root,value);
+    }
+    public boolean delNode(int value){
+        Node parent=this.searchParent(value);
+        Node targetNode=this.searchNode(value);
+        if(null==targetNode){
+            System.out.println("找不到节点无法删除！");
+            return false;
+        }
+        if(null==parent){
+            root=null;
+            return true;
+        }
+        if(null==targetNode.left&&null==targetNode.right){
+           if(null!=parent.left&&targetNode.value==parent.left.value){
+               parent.left=null;
+               return true;
+           }
+           if(null!=parent.right&&targetNode.value==parent.right.value){
+               parent.right=null;
+               return true;
+           }
+        }else if(){
+
+        }else{
+
+        }
+
+        return false;
+    }
+    //此方法无法搜索到root的父节点
+    private Node searchParent(Node node,int value){
+        if(null==node){
+            return null;
+        }
+        if(null!=node.left&&node.left.value==value){
+            return node;
+        }
+        if(null!=node.right&&node.right.value==value){
+            return node;
+        }
+        //以下代码只是简单的递归遍历左右子树查找父节点，没有用到二叉排序树的特点
+//        Node resNode=null;
+//        if(null!=node.left){
+//            resNode=this.searchParent(node.left,value);
+//        }
+//        if(null!=resNode){
+//            return resNode;
+//        }
+//        if(null!=node.right){
+//           resNode=this.searchParent(node.right,value);
+//        }
+//        return resNode;
+        //使用二叉排序树查找父节点
+        if(node.value>value){
+            return this.searchParent(node.left,value);
+        }else{
+            return this.searchParent(node.right,value);
+        }
+    }
+    public static class Node{
+        private int value;
+        private Node left;
+        private Node right;
+        //递归添加节点到排序二叉树中
+        public void addNode(Node node){
+            if(value>node.value){
+                if(null==left){
+                 left=node;
+                }else{
+                    left.addNode(node);
+                }
+            }else{
+                if(null==right){
+                    right=node;
+                }else{
+                    right.addNode(node);
+                }
+            }
+        }
+       public Node(int value){
+           this.value=value;
+       }
+        public int getValue() {
+            return value;
+        }
+
+        public void setValue(int value) {
+            this.value = value;
+        }
+
+        public Node getLeft() {
+            return left;
+        }
+
+        public void setLeft(Node left) {
+            this.left = left;
+        }
+
+        public Node getRight() {
+            return right;
+        }
+
+        public void setRight(Node right) {
+            this.right = right;
+        }
+
+        @Override
+        public String toString() {
+            return "Node{" +
+                    "value=" + value +
+                    '}';
+        }
+    }
+}
