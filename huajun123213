@@ -1,0 +1,238 @@
+package com.huajun123;
+
+public class BinarySearchTree {
+    private int[] arr;
+    private Node root;
+    public BinarySearchTree(int[] arr){
+        this.arr=arr;
+        this.setNodeRoot();
+    }
+    private void setNodeRoot(){
+        for (int i=0;i<arr.length;i++) {
+            if(0==i){
+                root=new Node(arr[i]);
+                continue;
+            }
+            root.addNode(new Node(arr[i]));
+        }
+    }
+    public void infixOrder(){
+        this.infixOrder(root);
+    }
+    //递归进行中序遍历
+    private void infixOrder(Node node){
+        if(null==node){
+            throw new RuntimeException("Root Node cannot be set null value!");
+        }
+        if(null!=node.left){
+            this.infixOrder(node.left);
+        }
+        System.out.println(node);
+        if(null!=node.right){
+            this.infixOrder(node.right);
+        }
+    }
+    public Node searchNode(int value){
+        return this.searchNode(root,value);
+    }
+    //递归搜索节点
+    private Node searchNode(Node node,int val){
+        if(null!=node) {
+            if (node.value == val) {
+                return node;
+            } else if (node.value > val) {
+                return this.searchNode(node.left,val);
+            } else {
+               return this.searchNode(node.right,val);
+            }
+        }else{
+            return null;
+        }
+    }
+    //递归搜索指定节点的父节点
+    public Node searchParent(int value){
+        return this.searchParent(root,value);
+    }
+    public boolean delNode(int value){
+        Node parent=this.searchParent(value);
+        Node targetNode=this.searchNode(value);
+        if(null==targetNode){
+            System.out.println("找不到节点无法删除！");
+            return false;
+        }
+        if(null==targetNode.left&&null==targetNode.right){
+            //删除的是根节点且根节点也是叶子节点
+            if(null==parent){
+                root=null;
+                return true;
+            }
+            //删除左叶子节点
+           if(null!=parent.left&&targetNode.value==parent.left.value){
+               parent.left=null;
+               return true;
+           }
+           //删除右叶子节点
+           if(null!=parent.right&&targetNode.value==parent.right.value){
+               parent.right=null;
+               return true;
+           }
+        }else if(null!=targetNode.left&&null!=targetNode.right){
+            int i = this.delAndReturnTreeMin(targetNode.right);
+            targetNode.value=i;
+            return true;
+        }else{
+            //只有一个节点
+          if(null!=parent){
+           if(null!=targetNode.left){
+               if(parent.left.value==targetNode.value){
+                   parent.left=targetNode.left;
+                   return true;
+               }
+               if(parent.right.value==targetNode.value){
+                   parent.right=targetNode.left;
+                   return true;
+               }
+           }
+           if(null!=targetNode.right){
+               if(parent.left.value==targetNode.value){
+                   parent.left=targetNode.right;
+                   return true;
+               }
+               if(parent.right.value==targetNode.value){
+                   parent.right=targetNode.right;
+                   return true;
+               }
+           }
+          }else{
+              if(null!=targetNode.left){
+                  root=targetNode.left;
+                  return true;
+              }
+              if(null!=targetNode.right){
+                  root=targetNode.right;
+                  return true;
+              }
+          }
+        }
+        return false;
+    }
+    //返回树的右边最小节点
+    public int delAndReturnTreeMin(Node node){
+        if(null==node.left){
+            //删除此最小节点
+            this.delNode(node.value);
+            return node.value;
+        }
+        return this.delAndReturnTreeMin(node.left);
+    }
+    //此方法无法搜索到root的父节点
+    private Node searchParent(Node node,int value){
+        if(null==node){
+            return null;
+        }
+        if(null!=node.left&&node.left.value==value){
+            return node;
+        }
+        if(null!=node.right&&node.right.value==value){
+            return node;
+        }
+        //以下代码只是简单的递归遍历左右子树查找父节点，没有用到二叉排序树的特点
+//        Node resNode=null;
+//        if(null!=node.left){
+//            resNode=this.searchParent(node.left,value);
+//        }
+//        if(null!=resNode){
+//            return resNode;
+//        }
+//        if(null!=node.right){
+//           resNode=this.searchParent(node.right,value);
+//        }
+//        return resNode;
+        //使用二叉排序树查找父节点
+        if(node.value>value){
+            return this.searchParent(node.left,value);
+        }else{
+            return this.searchParent(node.right,value);
+        }
+    }
+    public static class Node{
+        private int value;
+        private Node left;
+        private Node right;
+        //递归添加节点到排序二叉树中
+        public void addNode(Node node){
+            if(value>node.value){
+                if(null==left){
+                 left=node;
+                }else{
+                    left.addNode(node);
+                }
+            }else{
+                if(null==right){
+                    right=node;
+                }else{
+                    right.addNode(node);
+                }
+            }
+        }
+       public Node(int value){
+           this.value=value;
+       }
+        public int getValue() {
+            return value;
+        }
+
+        public void setValue(int value) {
+            this.value = value;
+        }
+
+        public Node getLeft() {
+            return left;
+        }
+
+        public void setLeft(Node left) {
+            this.left = left;
+        }
+
+        public Node getRight() {
+            return right;
+        }
+
+        public void setRight(Node right) {
+            this.right = right;
+        }
+
+        @Override
+        public String toString() {
+            return "Node{" +
+                    "value=" + value +
+                    '}';
+        }
+    }
+}
+
+
+
+   @Test
+    public void testBinarySearchTree(){
+       BinarySearchTree binarySearchTree = new BinarySearchTree(new int[]{7, 3, 10, 12, 5, 1, 9});
+       binarySearchTree.infixOrder();
+   }
+   @Test
+    public void testSearchingNodes(){
+       BinarySearchTree binarySearchTree = new BinarySearchTree(new int[]{7, 3, 10, 12, 5, 1, 9});
+       System.out.println(binarySearchTree.searchNode(7));
+       System.out.println(binarySearchTree.searchNode(3));
+       System.out.println(binarySearchTree.searchNode(10));System.out.println(binarySearchTree.searchNode(9));
+       System.out.println(binarySearchTree.searchNode(12));
+       System.out.println(binarySearchTree.searchNode(5));
+       System.out.println(binarySearchTree.searchNode(1));
+       BinarySearchTree.Node node = binarySearchTree.searchNode(13);
+       System.out.println(node);
+   }
+   @Test
+    public void testSettingParentNodes(){
+       BinarySearchTree binarySearchTree = new BinarySearchTree(new int[]{7, 3, 10, 12, 5, 1, 9});
+       System.out.println(binarySearchTree.searchParent(3));
+       System.out.println(binarySearchTree.searchParent(9));
+   }
