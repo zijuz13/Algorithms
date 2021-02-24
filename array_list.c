@@ -97,6 +97,11 @@ if(checkIndex(index,list->size)){
 }
 }
 bool alist_destroy(ArrayList* list){
+      list->size=0;
+    list->maxSize=0;
+    list->itemSize=0;
+    free(list->type);
+    list->type=NULL;
 if(NULL!=list->arr){
     for(int i=0;i<list->size;++i){
        free(list->arr[i]);
