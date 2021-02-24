@@ -30,11 +30,14 @@ if(0<=index&&index<size){
     void** temp=calloc(list->maxSize,sizeof(void*));
     void** originalArr=list->arr;
     for(int i=0;i<index;++i){
+        temp[i]=malloc(list->itemSize);
         memcpy(temp[i],originalArr[i],list->itemSize);
         free(originalArr[i]);
     }
+    temp[index]=malloc(list->itemSize);
     memcpy(temp[index],element,list->itemSize);
     for(int j=index+1,i=index;i<size;++i){
+        temp[j]=malloc(list->itemSize);
         memcpy(temp[j++],originalArr[i],list->itemSize);
         free(originalArr[i]);
     }
@@ -43,6 +46,7 @@ if(0<=index&&index<size){
     list->arr=temp;
     temp=NULL;
 }else{
+    list->arr[size]=malloc(list->itemSize);
 memcpy(list->arr[size],element,list->itemSize);
 }
 list->size++;
@@ -72,17 +76,26 @@ void* alist_get(ArrayList* list, int index){
 int alist_index_of(ArrayList* list, void* elem){
     int size=list->size;
     for(int i=0;i<size;i++){
-     if(memcmp(list->arr[i],elem,list->itemSize)){
+     if(0==memcmp(list->arr[i],elem,list->itemSize)){
          return i;
      } 
     }
     return -1;
 }
-// void* alist_remove(ArrayList* list, int index){
-// if(list==NULL||index==0){
-//     return NULL;
-// }
-// }
+void* alist_remove(ArrayList* list, int index){
+if(checkIndex(index,list->size)){
+    void* returnVal=list->arr[index];
+    for(int i=index+1;i<list->size;++i){
+        list->arr[i-1]=list->arr[i];
+    } 
+    free(list->arr[list->size-1]);
+    list->arr[list->size-1]=NULL;
+    list->size--;
+    return returnVal;
+}else{
+    return NULL;
+}
+}
 bool alist_destroy(ArrayList* list){
 if(NULL!=list->arr){
     for(int i=0;i<list->size;++i){
@@ -117,13 +130,32 @@ for(int i=0;i<size;++i){
     printf("%d\n",*((int*)list->arr[i]));
 }
 }
+void testMemcpy(){
+    int a=1;
+    //需要先对void进行分配内存
+    void* fucker=malloc(sizeof(int));
+    memcpy(fucker,&a,4);
+    printf("%d",*(int*)fucker);
+}
 int main(){
     ArrayList* list=alist_initialize(10,4,"int");
-    printList(list);
-    for(int i=0;i<2;i++){
-        int* pointer=&i;
-        alist_add(list,pointer);
+    for(int i=0;i<100;i++){
+        int pointer=i;
+        alist_add(list,&pointer);
     }
+    iterateAllElements(list);
+      printList(list);
+      int i=83333;
+    alist_add_at(list,82,&i);
+    iterateAllElements(list);
+    // testMemcpy();
+    printList(list);
+    int j=94;
+    printf("%d\n",alist_index_of(list,&j));
+    printf("%d\n",*(int*)alist_get(list,83));
+    printList(list);
+    printf("%d\n",*(int*)alist_remove(list,6));
+    printList(list);
     iterateAllElements(list);
     return 0;
 }
