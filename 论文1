@@ -1,0 +1,71 @@
+可以看到ConditionOutcome就是自动配置class的匹配结果
+
+public class ConditionOutcome {
+    private final boolean match;
+    private final ConditionMessage message;
+     
+由于class.forName耗时稍长,在这一段代码SpringBoot利用了多线程来解决class类的过滤，也就是说将要筛选的class名的数组的长度除以2，一半由子线程来处理，一半由主线程来处理SecondHalfResolver是主线程，firstHalfResolver是子线程，最后合成一个最后的outcomes数组返回
+
+protected final ConditionOutcome[] getOutcomes(String[] autoConfigurationClasses, AutoConfigurationMetadata autoConfigurationMetadata) {
+    int split = autoConfigurationClasses.length / 2;
+    OnClassCondition.OutcomesResolver firstHalfResolver = this.createOutcomesResolver(autoConfigurationClasses, 0, split, autoConfigurationMetadata);
+    OnClassCondition.OutcomesResolver secondHalfResolver = new OnClassCondition.StandardOutcomesResolver(autoConfigurationClasses, split, autoConfigurationClasses.length, autoConfigurationMetadata, this.getBeanClassLoader());
+    ConditionOutcome[] secondHalf = secondHalfResolver.resolveOutcomes();
+    ConditionOutcome[] firstHalf = firstHalfResolver.resolveOutcomes();
+    ConditionOutcome[] outcomes = new Conditio    System.arraycopy(secondHalf, 0, outcomes, split, secondHalf.length);
+    return outcomes; nOutcome[autoConfigurationClasses.length];
+    System.arraycopy(firstHalf, 0, outcomes, 0, firstHalf.length);
+
+}
+SpringBoot会检查后置class类是否在类路径中存在，如果存在则将outcome置为null否则加入失败信息到outcome中，从下面源代码可以看出，SpringBoot直接使用forName注册class如果类路径不存在直接抛出异常此时MISSING枚举类返回true，最后outcome就变为错误提示信息，相应的class也从自动配置中除去
+
+private static boolean isPresent(String className, ClassLoader classLoader) {
+    if (classLoader == null) {
+        classLoader = ClassUtils.getDefaultClassLoader();
+    }
+
+    try {
+        forName(className, classLoader);
+        return true;
+    } catch (Throwable var3) {
+        return false;
+    }
+}
+
+最后再在match数组中中对最后的结果进行过滤掉没有前置class的自动配置class类，match数组中的元素为true说明当前class的前置class全部存在，而match元素为false说明有前置class不存在，那么就会在下面的numberfiltered的for循环中将这些缺少前置class的自动配置class去除掉，而剩余的class就可以通过bean的生命周期进行初始化，也就完成了SpringBoot的自动配置
+  boolean skipped = false;
+    Iterator var8 = this.getAutoConfigurationImportFilters().iterator();
+
+    while(var8.hasNext()) {
+        AutoConfigurationImportFilter filter = (AutoConfigurationImportFilter)var8.next();
+        this.invokeAwareMethods(filter);
+        boolean[] match = filter.match(candidates, autoConfigurationMetadata);
+
+        for(int i = 0; i < match.length; ++i) {
+            if (!match[i]) {
+                skip[i] = true;
+                skipped = true;
+            }
+        }
+    }
+
+    if (!skipped) {
+        return configurations;
+    } else {
+        List<String> result = new ArrayList(candidates.length);
+
+        int numberFiltered;
+        for(numberFiltered = 0; numberFiltered < candidates.length; ++numberFiltered) {
+            if (!skip[numberFiltered]) {
+                result.add(candidates[numberFiltered]);
+            }
+        }
+
+        if (logger.isTraceEnabled()) {
+            numberFiltered = configurations.size() - result.size();
+            logger.trace("Filtered " + numberFiltered + " auto configuration class in " + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime) + " ms");
+        }
+
+        return new ArrayList(result);
+    }
+}
