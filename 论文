@@ -813,16 +813,6 @@ public boolean[] match(String[] autoConfigurationClasses, AutoConfigurationMetad
 
     return match;
 }
-可以看到ConditionOutcome就是自动配置class的匹配结果
-
-public class ConditionOutcome {
-    private final boolean match;
-    private final ConditionMessage message;
-     
-由于class.forName耗时稍长,在这一段代码SpringBoot利用了多线程来解决class类的过滤，也就是说将要筛选的class名的数组的长度除以2，一半由子线程来处理，一半由主线程来处理SecondHalfResolver是主线程，firstHalfResolver是子线程，最后合成一个最后的outcomes数组返回
-
-protected final ConditionOutcome[] getOutcomes(String[] autoConfigurationClasses, AutoConfigurationMetadata autoConfigurationMetadata) {
-
 
 
 
