@@ -47,42 +47,611 @@
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 第二章	相关技术介绍
 主要技术栈介绍。主要对本项目实现中运用的技术进行介绍，例如多线程，CAS, ReentrantLock,Vue.js, Spin Locks,前后端分离，鉴权，LomBok, Spring Cloud, Elasticsearch, Redis, RabbitMQ, Nginx, Docker等等技术进行介绍，并且通过对源码的分析来介绍为什么这些技术适合企业营销管理系统
 2.1	Spring框架
 Spring框架是Java平台的应用程序框架，并且具有inversion of control的作用，用于管理应用中常用的Bean。该框架的核心功能可以被任何Java应用程序使用，但是在Java EE（企业版）平台之上有一些用于构建Web应用程序的扩展。尽管该框架没有要求任何特定的编程模型，但它已作为Java EJB企业模型的补充在Java社区中流行。Spring框架是开源的。
-要灵活运用spring的ioc就得先彻底了解它底层的工作原理，这样将会对后来的调试和运用带来很大的遍历，下面将对spring的源码进行分析以方便，想要彻底了解spring框架就得先从循环依赖注入开始分析：
+要灵活运用spring的ioc就得先彻底了解它底层的工作原理，这样将会对后来的调试和运用带来很大的便利，下面将对spring的源码进行分析以方便，想要彻底了解spring框架就得先从循环依赖注入开始分析：
+1.以单例的实例化来介绍spring的IOC
+以某个自己需要初始化的singleton的webService为例，通过层层嵌套运行到doCreateBean()方法中，会在一个if判断中判断是否开启spring的循环依赖，默认是开启的，可以通过修改源代码或者Spring的BeanFactory提供的API来关闭循环依赖，判断是开启循环依赖后，运行以下方法
+        this.addSingletonFactory(beanName, () -> {
+            return this.getEarlyBeanReference(beanName, mbd, bean); //这行代码可以对传入的Bean对象做Proxy代理，做很多事情
+        });
+就可以将此还没有完全创建好的Bean对象加入到第三级缓存中(三级缓存可以查看下面的专门说明),这个第三级缓存会在有某bean需要循环注入时，从factory中得到此earlySingleton加入BeanFactory的earlySingletonObjects中方便后面再继续使用循环依赖，一旦循环调用结束，这个earlySingletonObject通过registerSingleton就进入到singleObjects(一个专门存储已经走完所用BeanDefinition生命周期的Bean的Map集合，一级缓存)，总流程概览：
+IndexService webService互为聚合关系，且都通过@Autowired自动注入对方：
+getBean("indexService")=>this.populateBean()中发现webService在singletonObjects的Map集合中没有且isSingletonCurrentlyInCreation(beanName)方法为false，那么就会返回null，实例化webService的BeanWrapper(BeanWrapper中封装实例对象已经属性描述器PropertyDescriptor)=>又走到this.populateBean()=>此时虽然singletonObjects中不存在这个BeanObject,但是isSingletonCurrentlyInCreation为true,走三级缓存拿对象，objectFactory中取earlySingleton后，在factory中删除相应factory，并且在earlySingletonObjects(第二级缓存)中加入此singletonObject方便后面还要对此对象进行循环依赖注入=>webService注入到IndexService,indexService完成剩下的生命周期
+1.入口函数SpringApplication:
+通过public static静态方法进入
+public static ConfigurableApplicationContext run(Class<?>[] primarySources, String[] args) {
+    return (new SpringApplication(primarySources)).run(args);
+}
+这里面包含两个过程
+1.instantialize SpringApplication对象：
+public SpringApplication(Class<?>... primarySources) {
+    this((ResourceLoader)null, primarySources);
+}
+
+public SpringApplication(ResourceLoader resourceLoader, Class<?>... primarySources) {
+    this.sources = new LinkedHashSet();
+
+    this.bannerMode = Mode.CONSOLE; //控制台模式
+    this.logStartupInfo = true;
+    this.addCommandLineProperties = true;
+    this.addConversionService = true;
+    this.headless = true;
+    this.registerShutdownHook = true;
+    this.additionalProfiles = new HashSet();
+    this.isCustomEnvironment = false;
+    this.resourceLoader = resourceLoader;
+    Assert.notNull(primarySources, "PrimarySources must not be null");
+
+    this.primarySources = new LinkedHashSet(Arrays.asList(primarySources));                                                                                                                                                            
+    this.webApplicationType = WebApplicationType.deduceFromClasspath(); //从ClassPath推断这个APP是Reactive还是Servlet
+    this.setInitializers(this.getSpringFactoriesInstances(ApplicationContextInitializer.class));
+    this.setListeners(this.getSpringFactoriesInstances(ApplicationListener.class));
+    this.mainApplicationClass = this.deduceMainApplicationClass();
+}
+2.进入run函数：
+public ConfigurableApplicationContext run(String... args) {
+    StopWatch stopWatch = new StopWatch();
+    stopWatch.start();
+
+    ConfigurableApplicationContext context = null;
+    Collection<SpringBootExceptionReporter> exceptionReporters = new ArrayList();
+    this.configureHeadlessProperty();
+    SpringApplicationRunListeners listeners = this.getRunListeners(args);
+    listeners.starting();                                                                                                                                                        
+
+    Collection exceptionReporters;  
+    try {
+        ApplicationArguments applicationArguments = new DefaultApplicationArguments(args);
+        ConfigurableEnvironment environment = this.prepareEnvironment(listeners, applicationArguments);
+        this.configureIgnoreBeanInfo(environment);
+        Banner printedBanner = this.printBanner(environment);
+        context = this.createApplicationContext();
+        exceptionReporters = this.getSpringFactoriesInstances(SpringBootExceptionReporter.class, new Class[]{ConfigurableApplicationContext.class}, context);
+        this.prepareContext(context, environment, listeners, applicationArguments, printedBanner);
+        this.refreshContext(context); //属性注入容器
+        this.afterRefresh(context, applicationArguments);
+        stopWatch.stop();
+        if (this.logStartupInfo) {
+            (new StartupInfoLogger(this.mainApplicationClass)).logStarted(this.getApplicationLog(), stopWatch);
+        }
+
+        listeners.started(context);
+        this.callRunners(context, applicationArguments);
+    } catch (Throwable var10) {
+        this.handleRunFailure(context, var10, exceptionReporters, listeners);
+        throw new IllegalStateException(var10);
+    }
+
+    try {
+        listeners.running(context);
+        return context;
+    } catch (Throwable var9) {
+        this.handleRunFailure(context, var9, exceptionReporters, (SpringApplicationRunListeners)null);
+        throw new IllegalStateException(var9);
+    }
+}
+3. refreshContext:
+private void refreshContext(ConfigurableApplicationContext context) {
+    this.refresh(context); //实例化BeanDefinition
+    if (this.registerShutdownHook) {
+        try {
+            context.registerShutdownHook();
+        } catch (AccessControlException var3) {
+        }
+    }
+
+}
+4.进入ApplicationContext的refresh进行实例化：
+public void refresh() throws BeansException, IllegalStateException {
+    synchronized(this.startupShutdownMonitor) {
+        this.prepareRefresh();
+        ConfigurableListableBeanFactory beanFactory = this.obtainFreshBeanFactory();
+        this.prepareBeanFactory(beanFactory);
+
+        try {
+            this.postProcessBeanFactory(beanFactory);
+            this.invokeBeanFactoryPostProcessors(beanFactory); //完成了BeanDefinitions的扫描
+            this.registerBeanPostProcessors(beanFactory);
+            this.initMessageSource();
+            this.initApplicationEventMulticaster();
+            this.onRefresh();
+            this.registerListeners();
+            this.finishBeanFactoryInitialization(beanFactory);
+            this.finishRefresh();
+        } catch (BeansException var9) {
+            if (this.logger.isWarnEnabled()) {
+                this.logger.warn("Exception encountered during context initialization - cancelling refresh attempt: " + var9);
+            }
+
+            this.destroyBeans();
+            this.cancelRefresh(var9);
+            throw var9;
+        } finally {
+            this.resetCommonCaches();
+        }
+
+    }
+}
+5.属性注入和循环依赖发生在 finishBeanFactoryInitialization();
+protected void finishBeanFactoryInitialization(ConfigurableListableBeanFactory beanFactory) {
+    if (beanFactory.containsBean("conversionService") && beanFactory.isTypeMatch("conversionService", ConversionService.class)) {
+        beanFactory.setConversionService((ConversionService)beanFactory.getBean("conversionService", ConversionService.class));
+    }
+
+    if (!beanFactory.hasEmbeddedValueResolver()) {
+        beanFactory.addEmbeddedValueResolver((strVal) -> {
+            return this.getEnvironment().resolvePlaceholders(strVal);
+        });                                                                                                                                                                   
+    }
+
+    String[] weaverAwareNames = beanFactory.getBeanNamesForType(LoadTimeWeaverAware.class, false, false);
+    String[] var3 = weaverAwareNames;
+    int var4 = weaverAwareNames.length;
+
+    for(int var5 = 0; var5 < var4; ++var5) {
+        String weaverAwareName = var3[var5];
+        this.getBean(weaverAwareName);
+    }
+
+    beanFactory.setTempClassLoader((ClassLoader)null);
+    beanFactory.freezeConfiguration();
+    beanFactory.preInstantiateSingletons();  //属性注入和对象初始化发生在这步骤；
+}
+6.BeanFactory的preInstantiateSingletons()方法解析：
+public void preInstantiateSingletons() throws BeansException {
+    if (this.logger.isTraceEnabled()) {
+        this.logger.trace("Pre-instantiating singletons in " + this);
+    }
+
+    List<String> beanNames = new ArrayList(this.beanDefinitionNames); //Deep Copy BeanDefinitionNames
+    Iterator var2 = beanNames.iterator();
+
+    while(true) {
+        String beanName;
+        Object bean;
+        do {
+            while(true) {
+                RootBeanDefinition bd;
+                do {
+                    do {
+                        do {
+                            if (!var2.hasNext()) {
+                                var2 = beanNames.iterator();
+
+                                while(var2.hasNext()) {
+                                    beanName = (String)var2.next();
+                                    Object singletonInstance = this.getSingleton(beanName);
+                                    if (singletonInstance instanceof SmartInitializingSingleton) {
+                                        SmartInitializingSingleton smartSingleton = (SmartInitializingSingleton)singletonInstance;
+                                        if (System.getSecurityManager() != null) {
+                                            AccessController.doPrivileged(() -> {
+                                                smartSingleton.afterSingletonsInstantiated();
+                                                return null;
+                                            }, this.getAccessControlContext());
+                                        } else {
+                                            smartSingleton.afterSingletonsInstantiated();
+                                        }
+                                    }
+                                }
+
+                                return;
+                            }
+
+                            beanName = (String)var2.next(); //取出所有的BeanName
+                            bd = this.getMergedLocalBeanDefinition(beanName); //取出beanName所对应的BeanDefinition
+                        } while(bd.isAbstract()); //单例对象实例化不会经过这行
+                    } while(!bd.isSingleton());    //单例对象实例化不会经过这行
+
+                } while(bd.isLazyInit());
+
+                if (this.isFactoryBean(beanName)) {  //也不是FactoryBean
+                    bean = this.getBean("&" + beanName);
+                    break;
+                }
+
+                this.getBean(beanName);  //这行代码进入bean的生命周期的下一个阶段,从以上的while循环可以知道,bean scope是Prototype和FactoryBean的不会经过这行,因为factory会break,而prototype会继续循环,进不来
+            }
+        } while(!(bean instanceof FactoryBean)); //显然不是FactoryBean回头继续初始化其他
+
+        FactoryBean<?> factory = (FactoryBean)bean; //如果是工厂bean，那么会推断此工厂是否是eagerinit,获得工厂bean,在下面的代码推断是否需要isEagerInit,即急迫加载,如果是急迫加载,直接this.getBean();
+        boolean isEagerInit;
+        if (System.getSecurityManager() != null && factory instanceof SmartFactoryBean) {
+            SmartFactoryBean var10000 = (SmartFactoryBean)factory;
+            ((SmartFactoryBean)factory).getClass();
+            isEagerInit = (Boolean)AccessController.doPrivileged(var10000::isEagerInit, this.getAccessControlContext());
+        } else {
+            isEagerInit = factory instanceof SmartFactoryBean && ((SmartFactoryBean)factory).isEagerInit();
+        }
+
+        if (isEagerInit) {
+            this.getBean(beanName);
+        }
+    }
+}
+7.进入this.getBean通过层层空壳函数，会进入如下代码： 
+protected <T> T doGetBean(String name, @Nullable Class<T> requiredType, @Nullable Object[] args, boolean typeCheckOnly) throws BeansException {
+    String beanName = this.transformedBeanName(name); //对名字进行校验，验证bean的名字是否非法
+    Object sharedInstance = this.getSingleton(beanName); //从Spring的三级缓存中去取Singleton对象
+    Object bean;
+    if (sharedInstance != null && args == null) {
+        if (this.logger.isTraceEnabled()) {
+            if (this.isSingletonCurrentlyInCreation(beanName)) {
+                this.logger.trace("Returning eagerly cached instance of singleton bean '" + beanName + "' that is not fully initialized yet - a consequence of a circular reference");
+                   //因为这个对象依赖了一个正在初始化的对象，所以返回一个eagerly cached instance of singleton.
+            } else {
+                this.logger.trace("Returning cached instance of singleton bean '" + beanName + "'"); //得到一个已经初始化成功的对象
+            }
+        }
+
+        bean = this.getObjectForBeanInstance(sharedInstance, name, beanName, (RootBeanDefinition)null); //不是工厂bean的话直接返回bean
+    } else {
+        if (this.isPrototypeCurrentlyInCreation(beanName)) {
+            throw new BeanCurrentlyInCreationException(beanName);
+        }
+
+        BeanFactory parentBeanFactory = this.getParentBeanFactory();
+        if (parentBeanFactory != null && !this.containsBeanDefinition(beanName)) {
+            String nameToLookup = this.originalBeanName(name);
+            if (parentBeanFactory instanceof AbstractBeanFactory) {
+                return ((AbstractBeanFactory)parentBeanFactory).doGetBean(nameToLookup, requiredType, args, typeCheckOnly);
+            }
+
+            if (args != null) {
+                return parentBeanFactory.getBean(nameToLookup, args);
+            }
+
+            if (requiredType != null) {
+                return parentBeanFactory.getBean(nameToLookup, requiredType);
+            }
+
+            return parentBeanFactory.getBean(nameToLookup);
+         }
+
+        if (!typeCheckOnly) {                                                                                                                                                                                             
+        }
+
+        try {
+            RootBeanDefinition mbd = this.getMergedLocalBeanDefinition(beanName);
+            this.checkMergedBeanDefinition(mbd, beanName, args);
+            String[] dependsOn = mbd.getDependsOn(); //对@DependsOn注解所标注的bean进行提前注册
+            String[] var11;
+            if (dependsOn != null) {
+                var11 = dependsOn;
+                int var12 = dependsOn.length;
+
+                for(int var13 = 0; var13 < var12; ++var13) {
+                    String dep = var11[var13];
+                    if (this.isDependent(beanName, dep)) {//判断是否循环depends-on,spring不支持循环depends-on @DependsOn
+                        throw new BeanCreationException(mbd.getResourceDescription(), beanName, "Circular depends-on relationship between '" + beanName + "' and '" + dep + "'");
+                    }
+
+                    this.registerDependentBean(dep, beanName);
+
+                    try {
+                        this.getBean(dep); //对依赖bean提前进行注册
+                    } catch (NoSuchBeanDefinitionException var24) {
+                        throw new BeanCreationException(mbd.getResourceDescription(), beanName, "'" + beanName + "' depends on missing bean '" + dep + "'", var24);
+                    }
+                }
+            }
+
+            if (mbd.isSingleton()) {
+                sharedInstance = this.getSingleton(beanName, () -> {
+                    try {
+                        return this.createBean(beanName, mbd, args);
+                    } catch (BeansException var5) {
+                        this.destroySingleton(beanName);
+                        throw var5;
+                    }
+                });
+                bean = this.getObjectForBeanInstance(sharedInstance, name, beanName, mbd);
+            } else if (mbd.isPrototype()) {
+                var11 = null;
+
+                Object prototypeInstance;
+                try {
+                    this.beforePrototypeCreation(beanName);
+                    prototypeInstance = this.createBean(beanName, mbd, args);
+                } finally {
+                    this.afterPrototypeCreation(beanName);
+                }
+
+                bean = this.getObjectForBeanInstance(prototypeInstance, name, beanName, mbd);
+            } else {
+                String scopeName = mbd.getScope();
+                Scope scope = (Scope)this.scopes.get(scopeName);
+                if (scope == null) {
+                    throw new IllegalStateException("No Scope registered for scope name '" + scopeName + "'");
+                }
+
+                try {
+                    Object scopedInstance = scope.get(beanName, () -> {
+                        this.beforePrototypeCreation(beanName);
+
+                        Object var4;
+                        try {
+                            var4 = this.createBean(beanName, mbd, args);
+                        } finally {
+                            this.afterPrototypeCreation(beanName);
+                        }
+
+                        return var4;
+                    });
+                    bean = this.getObjectForBeanInstance(scopedInstance, name, beanName, mbd);
+                } catch (IllegalStateException var23) {
+                    throw new BeanCreationException(beanName, "Scope '" + scopeName + "' is not active for the current thread; consider defining a scoped proxy for this bean if you intend to refer to it from a singleton", var23);
+                }
+            }
+        } catch (BeansException var26) {
+            this.cleanupAfterBeanCreationFailure(beanName);
+            throw var26;
+        }
+    }
+
+    if (requiredType != null && !requiredType.isInstance(bean)) {
+        try {
+            T convertedBean = this.getTypeConverter().convertIfNecessary(bean, requiredType);
+            if (convertedBean == null) {
+                throw new BeanNotOfRequiredTypeException(name, requiredType, bean.getClass());
+            } else {
+                return convertedBean;
+            }
+        } catch (TypeMismatchException var25) {
+            if (this.logger.isTraceEnabled()) {
+                this.logger.trace("Failed to convert bean '" + name + "' to required type '" + ClassUtils.getQualifiedName(requiredType) + "'", var25);
+            }
+
+            throw new BeanNotOfRequiredTypeException(name, requiredType, bean.getClass());
+        }
+    } else {
+        return bean;
+    }
+}
+getSingleton中的具体代码：
+public Object getSingleton(String beanName, ObjectFactory<?> singletonFactory) {
+    Assert.notNull(beanName, "Bean name must not be null");
+    synchronized(this.singletonObjects) {
+        Object singletonObject = this.singletonObjects.get(beanName);
+        if (singletonObject == null) {
+            if (this.singletonsCurrentlyInDestruction) {
+                throw new BeanCreationNotAllowedException(beanName, "Singleton bean creation not allowed while singletons of this factory are in destruction (Do not request a bean from a BeanFactory in a destroy method implementation!)");
+            }
+
+            if (this.logger.isDebugEnabled()) {
+                this.logger.debug("Creating shared instance of singleton bean '" + beanName + "'");
+            }
+
+            this.beforeSingletonCreation(beanName); //这一步标记了beanCurrentlyInCreation
+            boolean newSingleton = false;
+            boolean recordSuppressedExceptions = this.suppressedExceptions == null;
+            if (recordSuppressedExceptions) {
+                this.suppressedExceptions = new LinkedHashSet();
+            }
+
+            try {
+                singletonObject = singletonFactory.getObject();
+                newSingleton = true;
+            } catch (IllegalStateException var16) {
+                singletonObject = this.singletonObjects.get(beanName);
+                if (singletonObject == null) {
+                    throw var16;
+                }
+            } catch (BeanCreationException var17) {
+                BeanCreationException ex = var17;
+                if (recordSuppressedExceptions) {
+                    Iterator var8 = this.suppressedExceptions.iterator();
+
+                    while(var8.hasNext()) {
+                        Exception suppressedException = (Exception)var8.next();
+                        ex.addRelatedCause(suppressedException);
+                    }
+                }
+
+                throw ex;
+            } finally {
+                if (recordSuppressedExceptions) {
+                    this.suppressedExceptions = null;
+                }
+
+                this.afterSingletonCreation(beanName);
+            }
+
+            if (newSingleton) {
+                this.addSingleton(beanName, singletonObject);
+            }
+        }
+
+        return singletonObject;
+    }
+}
+
+8.Explanations of the singleton function above:
+Spring工厂实现循环依赖的三级缓存：
+2.ObjectFactory
+3.earlySingletonObjects  
+1.singletonObjects(Spring的一级缓存)
+
+protected Object getSingleton(String beanName, boolean allowEarlyReference) {
+    Object singletonObject = this.singletonObjects.get(beanName); // private final Map<String, Object> singletonObjects = new ConcurrentHashMap(256）；用来存储所有已经初始化(属性已经成功注入)
+// 的对象
+    if (singletonObject == null && this.isSingletonCurrentlyInCreation(beanName)) { //发现没有初始化好且此对象正在初始化中
+        synchronized(this.singletonObjects) {
+            singletonObject = this.earlySingletonObjects.get(beanName);
+            if (singletonObject == null && allowEarlyReference) {
+                ObjectFactory<?> singletonFactory = (ObjectFactory)this.singletonFactories.get(beanName);
+                if (singletonFactory != null) {
+                    singletonObject = singletonFactory.getObject();
+                    this.earlySingletonObjects.put(beanName, singletonObject);
+                    this.singletonFactories.remove(beanName);
+                }
+            }
+        }
+    }
+
+    return singletonObject;
+}
+private final Map<String, Object> singletonObjects = new ConcurrentHashMap(256）；
+9.doCreateBean:
+protected Object doCreateBean(String beanName, RootBeanDefinition mbd, @Nullable Object[] args) throws BeanCreationException {
+    BeanWrapper instanceWrapper = null;
+    if (mbd.isSingleton()) {
+        instanceWrapper = (BeanWrapper)this.factoryBeanInstanceCache.remove(beanName);
+    }
+
+    if (instanceWrapper == null) {
+        instanceWrapper = this.createBeanInstance(beanName, mbd, args);
+    }
+
+    Object bean = instanceWrapper.getWrappedInstance(); //这个就是被new出的一个对象bean
+    Class<?> beanType = instanceWrapper.getWrappedClass();
+    if (beanType != NullBean.class) {
+        mbd.resolvedTargetType = beanType;
+    }
+
+    synchronized(mbd.postProcessingLock) {
+        if (!mbd.postProcessed) {
+            try {
+                this.applyMergedBeanDefinitionPostProcessors(mbd, beanType, beanName);
+            } catch (Throwable var17) {
+                throw new BeanCreationException(mbd.getResourceDescription(), beanName, "Post-processing of merged bean definition failed", var17);
+            }
+
+            mbd.postProcessed = true;
+        }
+    }
+
+    boolean earlySingletonExposure = mbd.isSingleton() && this.allowCircularReferences && this.isSingletonCurrentlyInCreation(beanName); //允许循环依赖
+    if (earlySingletonExposure) {
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace("Eagerly caching bean '" + beanName + "' to allow for resolving potential circular references"); //缓存bean来方便后面潜在的循环依赖
+        }
+
+        this.addSingletonFactory(beanName, () -> {
+            return this.getEarlyBeanReference(beanName, mbd, bean); //earlySingletonExposure和允许循环依赖的意思差不多，这时候此对象还没有被初始化，将一个
+        });
+    }
+
+    Object exposedObject = bean;
+
+    try {
+        this.populateBean(beanName, mbd, instanceWrapper);
+        exposedObject = this.initializeBean(beanName, exposedObject, mbd);
+    } catch (Throwable var18) {
+        if (var18 instanceof BeanCreationException && beanName.equals(((BeanCreationException)var18).getBeanName())) {
+            throw (BeanCreationException)var18;
+        }
+
+        throw new BeanCreationException(mbd.getResourceDescription(), beanName, "Initialization of bean failed", var18);
+    }
+
+    if (earlySingletonExposure) {
+        Object earlySingletonReference = this.getSingleton(beanName, false);
+        if (earlySingletonReference != null) {
+            if (exposedObject == bean) {
+                exposedObject = earlySingletonReference;
+            } else if (!this.allowRawInjectionDespiteWrapping && this.hasDependentBean(beanName)) {
+                String[] dependentBeans = this.getDependentBeans(beanName);
+                Set<String> actualDependentBeans = new LinkedHashSet(dependentBeans.length);
+                String[] var12 = dependentBeans;
+                int var13 = dependentBeans.length;
+
+                for(int var14 = 0; var14 < var13; ++var14) {
+                    String dependentBean = var12[var14];
+                    if (!this.removeSingletonIfCreatedForTypeCheckOnly(dependentBean)) {
+                        actualDependentBeans.add(dependentBean);
+                    }
+                }
+
+                if (!actualDependentBeans.isEmpty()) {
+                    throw new BeanCurrentlyInCreationException(beanName, "Bean with name '" + beanName + "' has been injected into other beans [" + StringUtils.collectionToCommaDelimitedString(actualDependentBeans) + "] in its raw version as part of a circular reference, but has eventually been wrapped. This means that said other beans do not use the final version of the bean. This is often the result of over-eager type matching - consider using 'getBeanNamesOfType' with the 'allowEagerInit' flag turned off, for example.");
+                }
+            }
+        }
+    }
+
+    try {
+        this.registerDisposableBeanIfNecessary(beanName, bean, mbd);
+        return exposedObject;
+    } catch (BeanDefinitionValidationException var16) {
+        throw new BeanCreationException(mbd.getResourceDescription(), beanName, "Invalid destruction signature", var16);
+    }
+}
+10.楼上的addSingletonFactory的工厂类用来获得这个正在create的bean：
+源码：
+public interface ObjectFactory<T> {
+    T getObject() throws BeansException;
+}
+        this.addSingletonFactory(beanName, () -> {
+            return this.getEarlyBeanReference(beanName, mbd, bean);
+        }); //判断是否要做aop
+protected Object getEarlyBeanReference(String beanName, RootBeanDefinition mbd, Object bean) {
+    Object exposedObject = bean;
+    if (!mbd.isSynthetic() && this.hasInstantiationAwareBeanPostProcessors()) {
+        Iterator var5 = this.getBeanPostProcessors().iterator();
+
+        while(var5.hasNext()) {
+            BeanPostProcessor bp = (BeanPostProcessor)var5.next();
+            if (bp instanceof SmartInstantiationAwareBeanPostProcessor) {
+                SmartInstantiationAwareBeanPostProcessor ibp = (SmartInstantiationAwareBeanPostProcessor)bp;
+                exposedObject = ibp.getEarlyBeanReference(exposedObject, beanName);
+            }
+        }
+    }
+
+    return exposedObject;
+}
+protected void addSingletonFactory(String beanName, ObjectFactory<?> singletonFactory) {
+    Assert.notNull(singletonFactory, "Singleton factory must not be null");
+    synchronized(this.singletonObjects) {
+        if (!this.singletonObjects.containsKey(beanName)) {
+            this.singletonFactories.put(beanName, singletonFactory);
+            this.earlySingletonObjects.remove(beanName);
+            this.registeredSingletons.add(beanName);
+        }
+
+    }
+}
+
+11.
+Spring三级缓存：
+private final Map<String, Object> singletonObjects = new ConcurrentHashMap(256); //1.一级缓存 已经初始化后的单例对象缓存  单例池 spring容器
+private final Map<String, ObjectFactory<?>> singletonFactories = new HashMap(16); //2.三级缓存 单例对象工厂，一旦返回成功一次早暴露的对象 
+private final Map<String, Object> earlySingletonObjects = new HashMap(16); //3. 二级缓存 存在三级缓存是为了防止重复创建(因为多个实例可能依赖同个对象，你不能创建多个，直接存入三级缓存，以后每次从三级缓存中拿就行)，因为singletonFactories返回时会经过一系列步骤，这样也会节省时间
+private final Set<String> registeredSingletons = new LinkedHashSet(256);   //已经注册的Bean的BeanNames,不一定要走完生命周期
+private final Set<String> singletonsCurrentlyInCreation = Collections.newSetFromMap(new ConcurrentHashMap(16)); //正在创建中的BeanNames
+ 
+protected void beforeSingletonCreation(String beanName) {
+    if (!this.inCreationCheckExclusions.contains(beanName) && !this.singletonsCurrentlyInCreation.add(beanName)) {
+        throw new BeanCurrentlyInCreationException(beanName);
+    }
+}  //通过这个方法标识上某个Bean正在创建过程中 
+12.
+注册Singleton到singletonObjects已注册bean中
+public void registerSingleton(String beanName, Object singletonObject) throws IllegalStateException {
+    Assert.notNull(beanName, "Bean name must not be null");
+    Assert.notNull(singletonObject, "Singleton object must not be null");
+    synchronized(this.singletonObjects) {
+        Object oldObject = this.singletonObjects.get(beanName);
+        if (oldObject != null) {
+            throw new IllegalStateException("Could not register object [" + singletonObject + "] under bean name '" + beanName + "': there is already object [" + oldObject + "] bound");
+        } else { 
+            this.addSingleton(beanName, singletonObject);
+        }
+    }
+}
+protected void addSingleton(String beanName, Object singletonObject) {
+    synchronized(this.singletonObjects) {
+        this.singletonObjects.put(beanName, singletonObject);
+        this.singletonFactories.remove(beanName);
+        this.earlySingletonObjects.remove(beanName);
+        this.registeredSingletons.add(beanName);
 
 
 2.2Spring Boot
-SpringBoot是由Pivotal团队2013年进行开发设计的、并且在2014年4月发布第一个版本的全新开源的轻量级框架。结合Spring4.0，其拥有Spring框架所拥有的所有优良性质，最关键的是它可以进一步简化在之前spring开发中臃肿的配置文件而造成程序员本应该专注于业务而因为基础框架的搭建而浪费了大量的时间。而SpringBoot这个脚手架通过大量的简化配置来使得Spring应用的搭建和开发全部过程变得如此轻松与容易，程序员可以更加专注于业务逻辑的设计而非基础框架。同时，SpringBoot使得程序员只需要继承一个SpringBoot parent工程就可以集成大量的框架并且避免依赖包的版本冲突，以及解决了引用的不稳定性等问题。
+SpringBoot是由Pivotal团队2013年进行开发设计的、并且在2014年4月发布第一个版本的全新开源的轻量级框架。结合Spring4.0，其拥有Spring框架所拥有的所有优良性质，最关键的是它可以进一步简化在之前Spring开发中臃肿的配置文件而造成程序员本应该专注于业务而因为基础框架的搭建而浪费了大量的时间。而SpringBoot这个脚手架通过大量的简化配置来使得Spring应用的搭建和开发全部过程变得如此轻松与容易，程序员可以更加专注于业务逻辑的设计而非基础框架。同时，SpringBoot使得程序员只需要继承一个SpringBoot parent工程就可以集成大量的框架并且避免依赖包的版本冲突，以及解决了引用的不稳定性等问题。
 Spring Boot所具备的特征有：
 （1）可以创建独立的Spring应用程序，并且基于其Maven或Gradle插件，可以创建可执行的JARs和WARs；
 （2）内嵌Tomcat或Jetty等Servlet容器；
@@ -90,67 +659,31 @@ Spring Boot所具备的特征有：
 （4）尽可能自动配置Spring容器；
 （5）提供准备好的特性，如指标、健康检查和外部化配置；
 （6）绝对没有代码生成，不需要XML配置。 [1]  [2]
-SpringBoot框架中还有两个非常重要的策略：开箱即用和约定优于配置。开箱即用，Outofbox，是指在开发过程中，通过在MAVEN项目的pom文件中添加相关依赖包，然后使用对应注解来代替繁琐的XML配置文件以管理对象的生命周期。这个特点使得开发人员摆脱了复杂的配置工作以及依赖的管理工作，更加专注于业务逻辑。约定优于配置，Convention over configuration，是一种由SpringBoot本身来配置目标结构，由开发者在结构中添加信息的软件设计范式。这一特点虽降低了部分灵活性，增加了BUG定位的复杂性，但减少了开发人员需要做出决定的数量，同时减少了大量的XML配置，并且可以将代码编译、测试和打包等工作自动化。
-SpringBoot应用系统开发模板的基本架构设计从前端到后台进行说明：前端常使用模板引擎，主要有FreeMarker和Thymeleaf，它们都是用Java语言编写的，渲染模板并输出相应文本，使得界面的设计与应用的逻辑分离，同时前端开发还会使用到Bootstrap、AngularJS、JQuery等；在浏览器的数据传输格式上采用Json，非xml，同时提供RESTfulAPI；SpringMVC框架用于数据到达服务器后处理请求；到数据访问层主要有Hibernate、MyBatis、JPA等持久层框架；数据库常用MySQL；开发工具推荐IntelliJIDEA。 [1]
-虽然SpringBoot的使用非常简单但是我们在开始项目前需要对其源代码有更加详细的了解，这样才能在应用中更加灵活自如。而SpringBoot中最让人困惑的可能就是自动配置了。我们从SpringBoot的入口类开始一步一步详细解释为什么SpringBoot可以实现自动配置。
+SpringBoot框架中还有两个非常重要的策略：开箱即用和约定优于配
 
-@SpringBootApplication
-public class RedisVisitingProject{
-    public static void main(String[] args) {
-        SpringApplication.run(RedisVisitingProject.class);
-    }
-}
-通过Debug可以知道SpringBoot项目的自动配置入口文件是@EnableAutoConfiguration中的AutoConfigurationImportSelector.class
-@Target({ElementType.TYPE})
-@Retention(RetentionPolicy.RUNTIME)
-@Documented
-@Inherited
-@AutoConfigurationPackage
-@Import({AutoConfigurationImportSelector.class})
-public @interface EnableAutoConfiguration {
-    String ENABLED_OVERRIDE_PROPERTY = "spring.boot.enableautoconfiguration";
 
-    Class<?>[] exclude() default {};
 
-    String[] excludeName() default {};
-}
-继续分析源码可以得知：
-protected AutoConfigurationImportSelector.AutoConfigurationEntry getAutoConfigurationEntry(AutoConfigurationMetadata autoConfigurationMetadata, AnnotationMetadata annotationMetadata) {
-    if (!this.isEnabled(annotationMetadata)) {
-        return EMPTY_ENTRY;
-    } else {
-        AnnotationAttributes attributes = this.getAttributes(annotationMetadata); 
-        List<String> configurations = this.getCandidateConfigurations(annotationMetadata, attributes);
-        configurations = this.removeDuplicates(configurations); //将configuration List类型的集合加入到linkedhashset中避免重复，再由这个hashset加入到新的ArrayList中就做到了去重 new
-ArrayList(new LinkedHashSet(configurations));
-        Set<String> exclusions = this.getExclusions(annotationMetadata, attributes);  
-        this.checkExcludedClasses(configurations, exclusions); 
-        configurations.removeAll(exclusions);
-        configurations = this.filter(configurations, autoConfigurationMetadata); //用来判断每个configuration所对应的conditionalOnClass是否存在
-        this.fireAutoConfigurationImportEvents(configurations, exclusions);
-        return new AutoConfigurationImportSelector.AutoConfigurationEntry(configurations, exclusions);
-    }
-}
 
-1.this.isEnabled就是检查是否在yaml中配置了自动配置为false，如果用户自行配置了false，那么springboot将不会进行自动配置，则用户需要自行手动配置所有的插件
-2.其中的静态方法AutoConfigurationMetadataLoader.loadMetadata会加载META-INF/spring-autoconfigure-metadata.properties的文件，而这个文件对后面springboot过滤某些不需要的bean的配置有重要作用
 
-截取里面一部分的内容进行解释：
-org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration.ConditionalOnClass=com.mongodb.MongoClient
-当springboot加载MongoAutoConfiguration自动配置类时会先自行检查是否已经存在MongoClient，如果没有存在，则自动配置就不会配置当前类，自动过滤掉
 
-接下来就是对自动配置类的过滤和筛选了：
 
-我们先对AnnotationMetaData进行解释：
 
-在SpringBoot中这里的运行实例是StandardAnonotationMetaData类型，这个类型存储了我们入口类的字节码文件，方便在进行自动配置时读取入口类的注解上的配置属性，可以告诉SpringBoot我们哪些Bean需要手动配置，哪些需要自动配置，让我们的开发更加得心应手
 
-然后SpringBoot就会获取@SpringBootApplication复合注解中的@EnableAutonConfiguration的所有参数信息装入AnnotationAttributes实例中去，通过debug可以看到这里面有两个属性exclude和excludeName也证实了它的作用
 
-    然后SpringBoot通过getCandidateConfigurations从路径META-INF/spring.factories文件中获得等待配置的候选自动配置类
-protected List<String> getCandidateConfigurations(AnnotationMetadata metadata, AnnotationAttributes attributes) {
-    List<String> configurations = SpringFactoriesLoader.loadFactoryNames(this.getSpringFactoriesLoaderFactoryClass(), this.getBeanClassLoader());
-    Assert.notEmpty(configurations, "No auto configuration classes found in META-INF/spring.factories. If you are using a custom packaging, make sure that file is correct.");
-    return configurations;
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
