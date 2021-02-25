@@ -793,6 +793,35 @@ private List<String> filter(List<String> configurations, AutoConfigurationMetada
     }
 }
 
+其中过滤class中最关键的方法就filter.match(candidates,autoConfigurationMetaData);
+
+
+public boolean[] match(String[] autoConfigurationClasses, AutoConfigurationMetadata autoConfigurationMetadata) {
+    ConditionEvaluationReport report = this.getConditionEvaluationReport();
+    ConditionOutcome[] outcomes = this.getOutcomes(autoConfigurationClasses, autoConfigurationMetadata);
+    boolean[] match = new boolean[outcomes.length];
+
+    for(int i = 0; i < outcomes.length; ++i) {
+        match[i] = outcomes[i] == null || outcomes[i].isMatch();
+        if (!match[i] && outcomes[i] != null) {
+            this.logOutcome(autoConfigurationClasses[i], outcomes[i]);
+            if (report != null) {
+                report.recordConditionEvaluation(autoConfigurationClasses[i], this, outcomes[i]);
+            }
+        }
+    }
+
+    return match;
+}
+可以看到ConditionOutcome就是自动配置class的匹配结果
+
+public class ConditionOutcome {
+    private final boolean match;
+    private final ConditionMessage message;
+     
+由于class.forName耗时稍长,在这一段代码SpringBoot利用了多线程来解决class类的过滤，也就是说将要筛选的class名的数组的长度除以2，一半由子线程来处理，一半由主线程来处理SecondHalfResolver是主线程，firstHalfResolver是子线程，最后合成一个最后的outcomes数组返回
+
+protected final ConditionOutcome[] getOutcomes(String[] autoConfigurationClasses, AutoConfigurationMetadata autoConfigurationMetadata) {
 
 
 
