@@ -711,6 +711,47 @@ public String[] selectImports(AnnotationMetadata annotationMetadata) {
     }
 }
 
+1.this.isEnabled(annotationMetaData)就是检查是否在yaml中配置了自动配置为false，如果用户自行配置了false，那么springboot将不会进行自动配置，则用户需要自行手动配置所有的插件
+
+2.其中的静态方法AutoConfigurationMetadataLoader.loadMetadata会加载META-INF/spring-autoconfigure-metadata.properties的文件，而这个文件对后面SpringBoot过滤某些不需要的bean的配置有重要作用
+
+截取里面一部分的内容进行解释：
+org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration.ConditionalOnClass=com.mongodb.MongoClient
+当springboot加载MongoAutoConfiguration自动配置类时会先自行检查是否已经存在MongoClient，如果没有存在，则自动配置就不会配置当前类，自动过滤掉，关于SpringBoot是如何实现这一个特性的我们在下文进行分析
+
+3.接下来就是对自动配置类的过滤和筛选了，我们先对实例annotationMetaData进行仔细剖析：
+public class StandardAnnotationMetadata extends StandardClassMetadata implements AnnotationMetadata {
+   private final Annotation[] annotations;
+   private final boolean nestedAnnotationsAsMap;
+
+public StandardAnnotationMetadata(Class<?> introspectedClass) {
+    this(introspectedClass, false);
+}
+
+在SpringBoot中这里的运行实例是StandardAnonotationMetaData类型，这个类型存储了我们入口类的字节码文件(即上面的introspectedClass)，在这里存储的就是SpringApplicationExample.class, 方便在进行自动配置时读取入口类的注解上的配置属性，可以告诉SpringBoot我们哪些Bean需要手动配置，哪些需要自动配置，让我们的开发更加得心应手
+
+4.然后SpringBoot就会获取@SpringBootApplication复合注解中的@EnableAutonConfiguration的所有参数信息装入AnnotationAttributes实例中去，通过debug可以看到这里面有两个属性exclude和excludeName也证实了它的作用
+
+    5.然后SpringBoot通过getCandidateConfigurations从路径META-INF/spring.factories文件中获得等待配置的候选自动配置类
+protected List<String> getCandidateConfigurations(AnnotationMetadata metadata, AnnotationAttributes attributes) {
+    List<String> configurations = SpringFactoriesLoader.loadFactoryNames(this.getSpringFactoriesLoaderFactoryClass(), this.getBeanClassLoader());
+    Assert.notEmpty(configurations, "No auto configuration classes found in META-INF/spring.factories. If you are using a custom packaging, make sure that file is correct.");
+    return configurations;
+}
+
+在这一步中的removeDuplicates(configurations)值得注意
+configurations = this.removeDuplicates(configurations);
+这里实现配置的去重是通过将一个list实例传入linkedHashSet中构造一个linkedhashset，而hashset只存储不同的string值，最后再构造一个arraylist实例就成功实现去重了
+protected final <T> List<T> removeDuplicates(List<T> list) {
+    return new ArrayList(new LinkedHashSet(list));
+}
+接下来通过这两行代码
+Set<String> exclusions = this.getExclusions(annotationMetadata, attributes);
+this.checkExcludedClasses(configurations, exclusions);
+configurations.removeAll(exclusions);
+Springboot将会从候选bean类中去除用户在@EnableAutoConfiguration中指定的取消自动配置的bean
+
+用于SpringBoot自动配置，很多class的配置需要依赖另外class的存在，而filter这个方法的最主要的作用就是进一步筛选没有前置class的那些class从自动配置class的List中删除掉
 
 
 
