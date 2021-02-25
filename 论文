@@ -1,0 +1,156 @@
+第一章	绪论
+随着互联网和计算机的快速发展，零售行业信息化程度都迅速提高，企业对客户信息资源的管理与维护需求也随之骤增并且对于会员客户的合理化营销也对企业的发展产生了重要的影响。由于企业对于客户信息管理的规模总量巨大，在未来的企业信息化的发展过程中，务必会出现规模越来越大的营销需求，业务逻辑也会越来越复杂，所以我们需要建立完善的自动化营销体系，完成数据收集、客户营销的一站式服务。
+企业营销系统可以帮助企业建立自有的数据中心、汇集全渠道的客户数据。通过多种渠道将客户数据汇集到营销系统，解决信息孤岛的问题。并且利用数据管理审查数据完整度，便于营销人员分析，通过策划营销活动，逐步完善补足数据。最为重要的是，将用户数据进行筛选后，利用微信、邮件、短信等渠道进行自动的个性化营销，实现多渠道联动，多条件触发，减少人为操作，大幅度提高工作效率。
+
+1.1	论文的背景及意义
+在当今世界，营销成为了一个企业推广自己所必不可少的方式。数字营销是指通过数字渠道（例如搜索引擎，网站，电子邮件和微信短信息）投放的广告。数字营销就是使用这些渠道，推广公司的商品，服务和品牌的方法。同时，如今消费者严重依赖数字营销手段来了解产品。例如，《Think with Google》的营销报告发现，49％的消费者是在搜索引擎上开始查询的，而33％的消费者是通过电子邮件的推广了解产品，而26％的用户是在移动应用程序中推送来了解商品的。
+
+想要实现现代数字营销就意味着营销人员必须在其品牌上加入的庞大的营销管理系统，。为了发挥数字营销的真正潜力，营销系统的开发必须深入研究当今广阔而复杂的跨渠道世界，以发现通过互动营销产生的影响。互动营销就是收集相关的客户数据并且联系其与潜在客户之间的关系的一种营销手段，通过在数字环境中吸引客户，可以建立品牌知名度，成为行业领导羊，并且让客户在有意向购买该产品时第一个就会想到这个品牌。
+
+对于数字营销的未来，我们未来可以看到随着可供消费者使用的可穿戴设备的数量持续增加，电子邮件营销将变得更加个性化，企业的营销也更加的精准。
+1.2	国内外现状分析
+1.2.1	国外研究现状
+企业营销管理系统是企业信息管理系统的重要组成部分，因为零售行业的主要活动就是产品营销。西方发达国家的信息化建设起步比较， 企业信息系统建设相对比较完善，作为特殊行业的零售营销管理系统的建设在功能上和技术上都比较先进,，许多零售行业营销管理系统有效的结合CRM、 SCM，很大程度上提高了企业的综合竞争力[1]。除此之外，市场上也有许多知名的产品营销管理软件生产商，例如美国的Orade公司、德国的Sap公司。
+
+另外，由于新冠疫情肆虐，导致人们更多的网上购物。因此越来越多的中小企业选择设计并使用企业营销管理系统，通过更大资金投入并且不断开拓创新相关的技术，如多线程高并发，微服务架构等来完善企业营销管理系统。使得企业不仅能够将潜在用户的信息保留在自己的数据库中，并且可以通过像诸如大数据等手段分析出相应的报告对他们进行精准营销。并且经济增长缓慢，企业不能再单纯依靠规模经济的优势来站稳脚跟，继续投入大量的资金来招募大量的员工和有才华的人才来刺激企业的成长不再有效。然而，通过大量的高新技术来对企业进行数字化转型带来的提升却非常显著，这样就会在无形之中大幅度提升自己的利润。
+
+1.2.2	国内研究现状
+相比之下，国内的企业信息化建设起步比较晚，零售行业营销管理系统相对比较落后。随着对企业信息化重要性的认识加深，目前，国内许多零售行业大型公司已经建设完成或者正在筹建营销管理系统。已经有许多非常成功的例子，但是也出现一些失败的现象，因为一些企业只是盲目跟风，没有考虑本企业的实际需要，导致建设的营销管理系统不符合本企业的需要，根本无法为企业带来利润。除大中型企业外，大部分小型企业的营销管理系统还是采用传统的工作模式，人工记录、分析、统计数据，这种数据处理方式,不仅效率低下，而且一旦出现错误，很难检查出来，错误数据日积月累，很难保证统计数据的正确性[3]。纸质保存的数据很难进行查阅，也无法进行快速比较，而且容易损坏，不易备份数据。企业仍然采用传统营销管理模式的原因有企业负责人没有意识到产品营销管理信息化建设的重要性；短时间内无法体现信息化建设的价值；企业信息化建设需要投入大量的人力物力力求通过企业信息化建设来促进企业的快速发展,实现利益最大化
+
+同时，中小企业在我国公司占比之大，并且在我国经济发展中占据有重要地位，并且横跨多个领域，分布在中国社会生活的方方面面，因此每年都有非常多的新型小公司诞生，也有非常多的公司因为数字化程度不够或者其他原因导致竞争力不足，而在市场上销声匿迹。就这样，中小企业之间的竞争一定是往着越来越激烈的趋势变化的，只有将数字化科技应用于企业之中，不仅能提高企业的效率，提升企业的利润，更加重要的是，还能够提升人民的生活水平，各个企业通过激烈的数字化竞争，可以产生出更加成熟的软件产品，并且这个产品通过多次迭代和演变，可以更加迎合用户的口味。因此，我们的企业营销系统必定要采用当今最流行的分布式架构来设计，同时必须具备可以生产上线的能力，如果企业需要，就可以部署运行。
+
+并且，一个良好的企业营销系统必须可以适应一个企业多变的营销策略，这样可以带来非常多的好处。它可以用来击败竞争对手并同时提高销售额和利润。我们都知道，如此多的企业在相同产品和服务上竞争。如何在其他方面脱颖而出将在很大程度上取决于营销策略的有效性，精心计划的数字营销策略将帮助品牌在与竞品相比之中彰显优势，真正建立品牌，并最终成为市场中的“大”品牌。但是，如今由于中国大多数公司的数字化水平较低，还不能应用上很多国外成熟的营销技术，并且提升数字化水平的手段有限，需要花费大量的时间。
+
+1.3	论文工作内容
+本文主要研究企业营销系统的设计和开发过程，包括当前数字营销的必要性以及企业营销系统在数字营销中所扮演的重要角色，国内外对企业营销系统应用的现状，实现一个与时俱进的企业营销系统的主要技术介绍（设计常用的多线程高并发技术，大数据搜索技术等），系统的各部分模块（例如营销模版模块，电子邮件、短信发送模块以及客户信息聚合模块等），系统各模块的业务需求分析以及模型，实现系统开发过程中用到的一些算法，设计框架中的源代码知识可以更好的结合业务逻辑来提高相应的响应效率等等。
+
+首先调研了国内外企业营销系统的现状，并且据此分析国内的营销系统的需求，整理出相应的需求模型进行分析。对相应的需求模型设计相应的实现方案，例如微服务，前后端分离，分布式锁，高并发，算法等等，然后翻阅国外的技术网站查看相应的技术实现从而能够更好的将技术应用到项目中去。最后，按照需求开发相应的模块，并且使用单元测试技术和WebDriver等自动化测试技术对最后的项目进行测试。同时，本项目就是为了上线而打造的，所以相应的微服务部署都是经过周密考虑，在配置文件中也区分开发环境和生产环境，方便直接部署到容器Docker中去。在论文末尾会有详细的配置列表。
+
+
+1.4	论文组织结构
+论文一共有七个章节，各个章节的主要内容：
+
+第一章：绪论。包括论文选题、对国内外现状相应系统和数字营销进行深度分析、论文工作内容和结构组织。
+
+第二章:主要技术栈介绍。主要对本项目实现中运用的技术进行介绍，例如多线程，CAS, ReentrantLock,Vue.js, Spin Locks,前后端分离，鉴权，LomBok, Spring Cloud, Elasticsearch, Redis, RabbitMQ, Nginx, Docker等等技术进行介绍，并且通过对源码的分析来介绍为什么这些技术适合企业营销管理系统
+
+第三章:主要数据结构与算法介绍。由于这个项目将来可能直接上线，所以代码质量需要尽可能优化，降低时间复杂度，本章详细介绍项目中会用到的用来提升效率的几种数据结构与算法，如ConcurrentHashMap, BinarySearchTree, DFS BFS剪枝等。
+
+第三章：对企业营销管理系统的需求分析。通过实地在企业实习，以及对使用用户的走访调查总结出相应的需求，并通过用例图，时序图，类图等的方式将他们展示出来，方面后期开发能够对需求精准把控。
+
+第四章: 由于现在企业的开发都是敏捷开发，本论文为了高度模拟企业开发流程，故引入了敏捷开发使用jenkins等敏捷开发组件实现CI\DI持续集成，方便部署上线，本章将对持续集成进行深入分析
+
+第五章：对企业营销管理系统的实现，通过层层剖析前端MVVM的工作原理以及后端RestFUL api的相应作用以及负载均衡等功能，同时结合数据库中存储的数据库表之间字段以及elasticsearch中相应的搜索字段解析来达到对项目的深度剖析
+
+第六章：对企业营销管理系统的测试，本项目开发中采用Junit和Swagger Mock来进行单元测试，上线后采用Webdriver作为测试工具，方便jenkins自动集成后自动测试,本章节主要对测试工具进行分析，以及分析为什么企业中广泛采取这种测试方式。
+第七章：结束语。概括本论文的工作方向，以及相应的改进地方。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+第二章	相关技术介绍
+主要技术栈介绍。主要对本项目实现中运用的技术进行介绍，例如多线程，CAS, ReentrantLock,Vue.js, Spin Locks,前后端分离，鉴权，LomBok, Spring Cloud, Elasticsearch, Redis, RabbitMQ, Nginx, Docker等等技术进行介绍，并且通过对源码的分析来介绍为什么这些技术适合企业营销管理系统
+2.1	Spring框架
+Spring框架是Java平台的应用程序框架，并且具有inversion of control的作用，用于管理应用中常用的Bean。该框架的核心功能可以被任何Java应用程序使用，但是在Java EE（企业版）平台之上有一些用于构建Web应用程序的扩展。尽管该框架没有要求任何特定的编程模型，但它已作为Java EJB企业模型的补充在Java社区中流行。Spring框架是开源的。
+要灵活运用spring的ioc就得先彻底了解它底层的工作原理，这样将会对后来的调试和运用带来很大的遍历，下面将对spring的源码进行分析以方便，想要彻底了解spring框架就得先从循环依赖注入开始分析：
+
+
+2.2Spring Boot
+SpringBoot是由Pivotal团队2013年进行开发设计的、并且在2014年4月发布第一个版本的全新开源的轻量级框架。结合Spring4.0，其拥有Spring框架所拥有的所有优良性质，最关键的是它可以进一步简化在之前spring开发中臃肿的配置文件而造成程序员本应该专注于业务而因为基础框架的搭建而浪费了大量的时间。而SpringBoot这个脚手架通过大量的简化配置来使得Spring应用的搭建和开发全部过程变得如此轻松与容易，程序员可以更加专注于业务逻辑的设计而非基础框架。同时，SpringBoot使得程序员只需要继承一个SpringBoot parent工程就可以集成大量的框架并且避免依赖包的版本冲突，以及解决了引用的不稳定性等问题。
+Spring Boot所具备的特征有：
+（1）可以创建独立的Spring应用程序，并且基于其Maven或Gradle插件，可以创建可执行的JARs和WARs；
+（2）内嵌Tomcat或Jetty等Servlet容器；
+（3）提供自动配置的“starter”项目对象模型（POMS）以简化Maven配置；
+（4）尽可能自动配置Spring容器；
+（5）提供准备好的特性，如指标、健康检查和外部化配置；
+（6）绝对没有代码生成，不需要XML配置。 [1]  [2]
+SpringBoot框架中还有两个非常重要的策略：开箱即用和约定优于配置。开箱即用，Outofbox，是指在开发过程中，通过在MAVEN项目的pom文件中添加相关依赖包，然后使用对应注解来代替繁琐的XML配置文件以管理对象的生命周期。这个特点使得开发人员摆脱了复杂的配置工作以及依赖的管理工作，更加专注于业务逻辑。约定优于配置，Convention over configuration，是一种由SpringBoot本身来配置目标结构，由开发者在结构中添加信息的软件设计范式。这一特点虽降低了部分灵活性，增加了BUG定位的复杂性，但减少了开发人员需要做出决定的数量，同时减少了大量的XML配置，并且可以将代码编译、测试和打包等工作自动化。
+SpringBoot应用系统开发模板的基本架构设计从前端到后台进行说明：前端常使用模板引擎，主要有FreeMarker和Thymeleaf，它们都是用Java语言编写的，渲染模板并输出相应文本，使得界面的设计与应用的逻辑分离，同时前端开发还会使用到Bootstrap、AngularJS、JQuery等；在浏览器的数据传输格式上采用Json，非xml，同时提供RESTfulAPI；SpringMVC框架用于数据到达服务器后处理请求；到数据访问层主要有Hibernate、MyBatis、JPA等持久层框架；数据库常用MySQL；开发工具推荐IntelliJIDEA。 [1]
+虽然SpringBoot的使用非常简单但是我们在开始项目前需要对其源代码有更加详细的了解，这样才能在应用中更加灵活自如。而SpringBoot中最让人困惑的可能就是自动配置了。我们从SpringBoot的入口类开始一步一步详细解释为什么SpringBoot可以实现自动配置。
+
+@SpringBootApplication
+public class RedisVisitingProject{
+    public static void main(String[] args) {
+        SpringApplication.run(RedisVisitingProject.class);
+    }
+}
+通过Debug可以知道SpringBoot项目的自动配置入口文件是@EnableAutoConfiguration中的AutoConfigurationImportSelector.class
+@Target({ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Inherited
+@AutoConfigurationPackage
+@Import({AutoConfigurationImportSelector.class})
+public @interface EnableAutoConfiguration {
+    String ENABLED_OVERRIDE_PROPERTY = "spring.boot.enableautoconfiguration";
+
+    Class<?>[] exclude() default {};
+
+    String[] excludeName() default {};
+}
+继续分析源码可以得知：
+protected AutoConfigurationImportSelector.AutoConfigurationEntry getAutoConfigurationEntry(AutoConfigurationMetadata autoConfigurationMetadata, AnnotationMetadata annotationMetadata) {
+    if (!this.isEnabled(annotationMetadata)) {
+        return EMPTY_ENTRY;
+    } else {
+        AnnotationAttributes attributes = this.getAttributes(annotationMetadata); 
+        List<String> configurations = this.getCandidateConfigurations(annotationMetadata, attributes);
+        configurations = this.removeDuplicates(configurations); //将configuration List类型的集合加入到linkedhashset中避免重复，再由这个hashset加入到新的ArrayList中就做到了去重 new
+ArrayList(new LinkedHashSet(configurations));
+        Set<String> exclusions = this.getExclusions(annotationMetadata, attributes);  
+        this.checkExcludedClasses(configurations, exclusions); 
+        configurations.removeAll(exclusions);
+        configurations = this.filter(configurations, autoConfigurationMetadata); //用来判断每个configuration所对应的conditionalOnClass是否存在
+        this.fireAutoConfigurationImportEvents(configurations, exclusions);
+        return new AutoConfigurationImportSelector.AutoConfigurationEntry(configurations, exclusions);
+    }
+}
+
+1.this.isEnabled就是检查是否在yaml中配置了自动配置为false，如果用户自行配置了false，那么springboot将不会进行自动配置，则用户需要自行手动配置所有的插件
+2.其中的静态方法AutoConfigurationMetadataLoader.loadMetadata会加载META-INF/spring-autoconfigure-metadata.properties的文件，而这个文件对后面springboot过滤某些不需要的bean的配置有重要作用
+
+截取里面一部分的内容进行解释：
+org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration.ConditionalOnClass=com.mongodb.MongoClient
+当springboot加载MongoAutoConfiguration自动配置类时会先自行检查是否已经存在MongoClient，如果没有存在，则自动配置就不会配置当前类，自动过滤掉
+
+接下来就是对自动配置类的过滤和筛选了：
+
+我们先对AnnotationMetaData进行解释：
+
+在SpringBoot中这里的运行实例是StandardAnonotationMetaData类型，这个类型存储了我们入口类的字节码文件，方便在进行自动配置时读取入口类的注解上的配置属性，可以告诉SpringBoot我们哪些Bean需要手动配置，哪些需要自动配置，让我们的开发更加得心应手
+
+然后SpringBoot就会获取@SpringBootApplication复合注解中的@EnableAutonConfiguration的所有参数信息装入AnnotationAttributes实例中去，通过debug可以看到这里面有两个属性exclude和excludeName也证实了它的作用
+
+    然后SpringBoot通过getCandidateConfigurations从路径META-INF/spring.factories文件中获得等待配置的候选自动配置类
+protected List<String> getCandidateConfigurations(AnnotationMetadata metadata, AnnotationAttributes attributes) {
+    List<String> configurations = SpringFactoriesLoader.loadFactoryNames(this.getSpringFactoriesLoaderFactoryClass(), this.getBeanClassLoader());
+    Assert.notEmpty(configurations, "No auto configuration classes found in META-INF/spring.factories. If you are using a custom packaging, make sure that file is correct.");
+    return configurations;
+}
+
