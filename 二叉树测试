@@ -1,0 +1,16 @@
+    @Test
+    public void testBinaryTreeAll(){
+        int[] ints = {5,3,6,5,8,10,13};
+        BinaryTree4 binaryTree4 = new BinaryTree4(ints);
+        binaryTree4.infixOrder();
+        BinaryTree4.Node node = binaryTree4.searchNode(5);
+        System.out.println(node);
+        BinaryTree4.Node node1 = binaryTree4.searchParent(8);
+        System.out.println(node1.height());
+        System.out.println(node1.leftHeight());
+        System.out.println(node1.rightHeight());
+        System.out.println("树的高度为："+binaryTree4.height());
+        binaryTree4.bruteDelete(10);
+        System.out.println(binaryTree4.height());
+        binaryTree4.infixOrder();
+    }
