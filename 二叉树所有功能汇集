@@ -1,0 +1,158 @@
+package com.huajun123;
+
+public class BinaryTree4 {
+    private int[] arr;
+    private Node root;
+    private static Node pre;
+    public BinaryTree4(int[] arr){
+        this.arr=arr;
+        for(int a:arr){
+            BinaryTree4.this.addNode(a);
+        }
+    }
+    public BinaryTree4(Node root){
+        this.root=root;
+    }
+    static class Node{
+        private int val;
+        private Node left;
+        private Node right;
+        private int leftType;
+        private int rightType;
+        public Node(int val){
+            this.val=val;
+        }
+        //线索化二叉树
+        public void threadNodes(){
+            if(null!=left)left.threadNodes();
+            if(null!=pre&&null==pre.right){
+                pre.right=this;
+            }
+            if(null==left){
+                left=pre;
+            }
+            pre=this;
+            if(null!=right)right.threadNodes();
+        }
+        @Override
+        public String toString() {
+            return "Node{" +
+                    "val=" + val +
+                    '}';
+        }
+        //递归中序遍历节点
+        public void infixOrder(){
+            if(null!=left)left.infixOrder();
+            System.out.println(this);
+            if(null!=right)right.infixOrder();
+        }
+        public int height(){
+            return Math.max(null!=left?left.height():0,null!=right?right.height():0)+1;
+        }
+        public int leftHeight(){
+            return null!=left?left.height():0;
+        }
+        public int rightHeight(){
+            return null!=right?right.height():0;
+        }
+        //递归为二叉排序树添加节点
+        public void addNode(int val){
+            if(val>=this.val){
+                if(null==right){
+                    right=new Node(val);
+                }else{
+                    right.addNode(val);
+                }
+            }else{
+                if(null==left){
+                    left=new Node(val);
+                }else{
+                    left.addNode(val);
+                }
+            }
+        }
+        //中序递归搜索某个值的父节点
+        public Node searchParent(int val){
+            Node parent=null;
+            if(null!=left)parent=left.searchParent(val);
+            if(null!=parent){
+                return parent;
+            }
+            if(null!=left&&left.val==val||null!=right&&right.val==val){
+                return this;
+            }
+            if(null!=right)parent=right.searchParent(val);
+            return parent;
+        }
+        public Node search(int val){
+            Node temp=null;
+            if(null!=left)
+                temp=left.search(val);
+            if(null!=temp){
+                return temp;
+            }
+            if(this.val==val){
+                return this;
+            }
+            if(null!=right){
+                temp=right.search(val);
+            }
+            return temp;
+        }
+        //暴力删除节点,直接子树删除
+        public boolean delete1(int val){
+            if(null!=left&&left.delete1(val)){
+                return true;
+            }
+            if(null!=left&&left.val==val){
+                this.left=null;
+                return true;
+            }
+            if(null!=right&&right.val==val){
+                this.right=null;
+                return true;
+            }
+            if(null!=right&&right.delete1(val)){
+                return true;
+            }
+            return false;
+        }
+    }
+    private void addNode(int val){
+        if(null==root){
+            root=new Node(val);
+        }else{
+            root.addNode(val);
+        }
+    }
+    public void infixOrder(){
+        if(null!=root)root.infixOrder();
+    }
+    public Node searchNode(int val){
+        if(null!=root){
+            Node search = root.search(val);
+            System.out.println(search);
+            return search;
+        }
+        return null;
+    }
+    public Node searchParent(int val){
+      if(val==root.val){
+          return null;
+      }else{
+          System.out.println("Parent Node");
+          Node node = root.searchParent(val);
+          System.out.println(node);
+          return node;
+      }
+    }
+    public int height(){
+       return root.height();
+    }
+    public void bruteDelete(int val){
+       if(null!=root)root.delete1(val);
+    }
+    public void elegantDelete(int val){
+
+    }
+}
