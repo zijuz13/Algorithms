@@ -26,10 +26,12 @@ public class BinaryTree4 {
         public void threadNodes(){
             if(null!=left)left.threadNodes();
             if(null!=pre&&null==pre.right){
+                pre.rightType=1;
                 pre.right=this;
             }
             if(null==left){
                 left=pre;
+                this.leftType=1;
             }
             pre=this;
             if(null!=right)right.threadNodes();
