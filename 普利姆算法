@@ -1,0 +1,51 @@
+package com.huajun123;
+
+public class PrimeAlgorithm3 {
+    private int[][] table;
+    private boolean[] isVisited;
+    private char[] vertexes;
+    //深度拷贝table或顶点数组
+    public PrimeAlgorithm3(int[][] table,char[] vertexes){
+        for(int i=0;i<table.length;++i){
+            for(int j=0;j<table[i].length;++j){
+                this.table[i][j]=table[i][j];
+            }
+        }
+        isVisited=new boolean[table.length];
+        for(int i=0;i<table.length;++i){
+            this.vertexes[i]=vertexes[i];
+        }
+    }
+    public void solvePrimeTreeProblem(char vertex){
+        int index = this.getPositionByChar(vertex);
+        isVisited[index]=true;
+        int minValue;
+        int h;
+        int q;
+        for(int i=1;i<vertexes.length;++i){
+            minValue=Integer.MAX_VALUE;
+            h=-1;
+            q=-1;
+            for(int j=0;j<vertexes.length;++j){
+                if(!isVisited[j])continue;
+                for(int k=0;k<vertexes.length;++k){
+                    if(!isVisited[k]&&table[j][k]<minValue){
+                        minValue=table[j][k];
+                        h=j;
+                        q=k;
+                    }
+                }
+            }
+            isVisited[q]=true;
+            System.out.println("选定边:"+vertexes[h]+"--->"+vertexes[q]);
+        }
+    }
+    private int getPositionByChar(char vertex){
+        for(int i=0;i<vertexes.length;++i){
+            if(vertexes[i]==vertex){
+                return i;
+            }
+        }
+        return -1;
+    }
+}
